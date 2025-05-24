@@ -360,7 +360,7 @@ body {
   width: 50px;
   height: 50px;
   top: 30px;
-  right: 170px;
+  right: 230px;
   background-image: url('assets/SongOn.png');
   background-repeat: no-repeat;
   background-size: 110%;
@@ -402,4 +402,122 @@ body {
   background-size: 120%;
   background-position: center;
   border-radius: 15px;
+}
+
+/*  */
+
+#ball {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  background-image: url('assets/ball.svg');
+  background-size: cover;
+  top: 550px;
+  left: 390px;
+  z-index: 10;
+}
+
+.brick {
+  position: absolute;
+  width: 50px;
+  height: 30px;
+  background-image: url('assets/brick.svg');
+  background-size: cover;
+}
+
+.defender {
+  position: absolute;
+  width: 50px;
+  height: 30px;
+  background-image: url('assets/defender.svg');
+  background-size: cover;
+}
+
+.referee {
+  position: absolute;
+  width: 50px;
+  height: 30px;
+  background-image: url('assets/referee.svg');
+  background-size: cover;
+}
+
+.gk {
+  position: absolute;
+  width: 50px;
+  height: 30px;
+  background-image: url('assets/goalkeeper.svg');
+  background-size: cover;
+}
+
+/* 좌측 상단 점수 */
+#ingame-ui-score {
+  position: absolute;
+  top: 40px;
+  left: 120px;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  text-shadow: 1px 1px 2px black;
+  z-index: 10;
+}
+
+/* 중앙 상단 타이머 / 스코어 */
+#ingame-ui-timer {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+  z-index: 10;
+}
+
+#ingame-ui-match {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+  z-index: 10;
+}
+
+#ingame-reset-button {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  top: 30px;
+  right: 170px;
+  background-image: url('assets/reset.svg');
+  background-repeat: no-repeat;
+  background-size: 110%;
+  background-position: center;
+  border-radius: 5px;
+  border: 0;
+}
+
+#player {
+  position: absolute;
+  width: 50px;
+  height: 30px;
+  background-image: url('assets/homeUniform.png');
+  background-size: cover;
+  top: 650px;
+  left: 470px;
+  z-index: 9;
+}
+
+#ingame-ui-special {
+  position: absolute;
+  bottom: 30px;
+  left: 120px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+  z-index: 10;
 }
