@@ -7,6 +7,7 @@
 //ingame 사운드와 main-menu 사운드를 분리해서 서로 다른 사운드로 하는것도 나쁘지 않을듯?
 
 $(function () {
+  let gamePaused = false;
   const bgmAudio = $('#bgm')[0];
   const bgmList = ['bgm0.mp3', 'bgm1.mp3']; //bgm 추가하고싶으면 여기 바꾸면 됨
   const effect = $('#main-effect')[0]; //이펙트용
@@ -20,7 +21,7 @@ $(function () {
   let specialShootCount = 3;
   let ballLaunched = false;
   let ballDirX = 0;
-  let ballDirY = -5;
+  let ballDirY = -8;
   let specialMode = null;
   let x = 0;
   let y = 0;
@@ -57,7 +58,7 @@ $(function () {
     x = $('#ball').position().left;
     y = $('#ball').position().top;
     ballDirX = 0;
-    ballDirY = -6;
+    ballDirY = -9;
   }
 
   function startTimer(callback) {
@@ -74,16 +75,33 @@ $(function () {
     }, 1000);
   }
   function moveBall() {
+    if (gamePaused) return;
     if (ballLaunched) {
       x += ballDirX;
       y += ballDirY;
       $('#ball').css({ top: y + 'px', left: x + 'px' });
 
-      const FIELD_LEFT = 100;
-      const FIELD_RIGHT = 900;
-      const FIELD_TOP = 20;
-      const FIELD_BOTTOM = 820;
+      // Always check for goal collision
+      const gx = 445;
+      const gy = 130;
+      const gw = 110;
+      const gh = 50;
       const BALL_SIZE = 25;
+      const bx = $('#ball').offset().left;
+      const by = $('#ball').offset().top;
+
+      if (bx + BALL_SIZE > gx && bx < gx + gw && by + BALL_SIZE > gy && by < gy + gh) {
+        updateScore(score + 1000);
+        updateMatchScore(matchScore[0] + 1, matchScore[1]);
+        ballLaunched = false;
+        resetBallToPlayer();
+        return;
+      }
+
+      const FIELD_LEFT = 240;
+      const FIELD_RIGHT = 760;
+      const FIELD_TOP = 160;
+      const FIELD_BOTTOM = 680;
 
       if (x <= FIELD_LEFT) {
         x = FIELD_LEFT;
@@ -98,9 +116,9 @@ $(function () {
         ballDirY *= -1;
       }
       if (y + BALL_SIZE >= FIELD_BOTTOM) {
-        ballLaunched = false;
         updateScore(score - 300);
         updateMatchScore(matchScore[0], matchScore[1] + 1);
+        ballLaunched = false;
         resetBallToPlayer();
         return;
       }
@@ -125,9 +143,8 @@ $(function () {
           // 파워모드: defender는 1회만 파괴 가능, brick/referee는 전부 파괴 가능
           if (specialMode === 'power') {
             if ($b.hasClass('gk')) {
-              updateScore(score - 300);
-              updateMatchScore(matchScore[0], matchScore[1] + 1);
-              ballDirY *= -1;
+              ballLaunched = false;
+              resetBallToPlayer();
               specialMode = null;
               hit = true;
               return;
@@ -157,8 +174,8 @@ $(function () {
           } else {
             // 일반 슛
             if ($b.hasClass('gk')) {
-              updateScore(score - 300);
-              updateMatchScore(matchScore[0], matchScore[1] + 1);
+              ballLaunched = false;
+              resetBallToPlayer();
             } else {
               hp -= specialMode === 'curve' ? 3 : 1;
               if (hp > 0) {
@@ -312,7 +329,7 @@ $(function () {
     $('#ingame').show();
     $('#ingame-main').empty();
 
-    timeLeft = 60;
+    timeLeft = 180;
     updateMatchScore(0, 0);
     updateScore(0);
 
@@ -331,6 +348,9 @@ $(function () {
     $('#ingame-main').append('<div id="ball"></div>');
     // 플레이어 생성
     $('#ingame-main').append('<div id="player"></div>');
+
+    // 골대 생성
+    $('#ingame-main').append('<div id="goalpost"></div>');
 
     x = 390;
     y = 700;
@@ -406,7 +426,7 @@ $(function () {
     $(document)
       .off('keydown')
       .on('keydown', function (e) {
-        const step = 10;
+        const step = 40;
         const player = $('#player');
         const px = player.position().left;
 
@@ -425,7 +445,7 @@ $(function () {
             specialMode = 'power';
             ballLaunched = true;
             ballDirX = 0;
-            ballDirY = -6;
+            ballDirY = -9;
           }
         }
         if (e.key === 'w') {
@@ -436,7 +456,7 @@ $(function () {
             updateSpecialCount(specialShootCount);
             specialMode = 'curve';
             ballLaunched = true;
-            ballDirX = 2;
+            ballDirX = 4;
             ballDirY = -4;
           }
         }
@@ -445,7 +465,7 @@ $(function () {
             specialMode = null;
             ballLaunched = true;
             ballDirX = 0;
-            ballDirY = -6;
+            ballDirY = -9;
           }
         }
       });
@@ -470,7 +490,19 @@ $(function () {
     $('#ingame-pause-button')
       .off('click')
       .on('click', function () {
-        alert('일시정지 기능은 추후 구현됩니다.');
+        playMenuEffect(); // 클릭 사운드 효과
+        gamePaused = true;
+        $('#ingame').hide();
+        $('#ingame-pause').show();
+        // Resume button logic
+        $('#continue')
+          .off('click')
+          .on('click', function () {
+            playMenuEffect();
+            $('#ingame').show();
+            $('#ingame-pause').hide();
+            gamePaused = false;
+          });
       });
 
     startTimer(() => {
