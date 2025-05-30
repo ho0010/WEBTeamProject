@@ -8,19 +8,27 @@
 
 $(function () {
   const bgmAudio = $('#bgm')[0];
-  const bgmList = ['bgm0.mp3', 'bgm1.mp3']; //bgm 추가하고싶으면 여기 바꾸면 됨
+  const bgmList = ['assets/bgm0.mp3', 'assets/bgm1.mp3']; //bgm 추가하고싶으면 여기 바꾸면 됨
   const effect = $('#main-effect')[0]; //이펙트용
-  const uniformList = ['homeUniform.png', 'awayUniform.png']; //unform 추가하고싶으면 여기 바꾸면 됨
-  const pauseList = ['Pause.png', 'Play.png']; //ingame에서 pause버튼 이미지 리스트
-  const bgmOnOffList = ['SongOn.png', 'SongOff.png']; //ingame에서 bgm on off button list
-  let curr_uniform = 'homeUniform.png'; //현재 유니폼
+  const uniformList = ['assets/homeUniform.png', 'assets/awayUniform.png']; //unform 추가하고싶으면 여기 바꾸면 됨
+  const pauseList = ['assets/Pause.png', 'assets/Play.png']; //ingame에서 pause버튼 이미지 리스트
+  const bgmOnOffList = ['assets/SongOn.png', 'assets/SongOff.png']; //ingame에서 bgm on off button list
+  let curr_uniform = 'assets/homeUniform.png'; //현재 유니폼
   let curr_stage = 0;
+
+  // $(document).on('mousemove', function(e) {
+  //   // e.pageX, e.pageY는 문서 전체 기준 좌표
+  //   // e.clientX, e.clientY는 브라우저 창(뷰포트) 기준 좌표
+  //   console.log('마우스 위치:', e.pageX, e.pageY);
+  // }); //마우스 위치 확인용 
+  
+  // 필요할때마다 쓰면 됨
 
   let score = 0;
   let specialShootCount = 3;
   let ballLaunched = false;
   let ballDirX = 0;
-  let ballDirY = -5;
+  let ballDirY = -8;
   let specialMode = null;
   let x = 0;
   let y = 0;
@@ -57,7 +65,7 @@ $(function () {
     x = $('#ball').position().left;
     y = $('#ball').position().top;
     ballDirX = 0;
-    ballDirY = -6;
+    ballDirY = -8; //
   }
 
   function startTimer(callback) {
@@ -79,11 +87,11 @@ $(function () {
       y += ballDirY;
       $('#ball').css({ top: y + 'px', left: x + 'px' });
 
-      const FIELD_LEFT = 100;
-      const FIELD_RIGHT = 900;
-      const FIELD_TOP = 20;
-      const FIELD_BOTTOM = 820;
-      const BALL_SIZE = 25;
+      const FIELD_LEFT = 270;
+      const FIELD_RIGHT = 750;
+      const FIELD_TOP = 170;
+      const FIELD_BOTTOM = 690;
+      const BALL_SIZE = 10; //위 사이즈가 적정 사이즈 인듯
 
       if (x <= FIELD_LEFT) {
         x = FIELD_LEFT;
@@ -201,9 +209,7 @@ $(function () {
 
   setInterval(moveBall, 30);
 
-  //무조건 낮은 단계부터 차례대로 해야되고 밑에 단계를 못깨면 윗 단계 플레이 불가
-  $('#kickoff-button1').prop('disabled', true);
-  $('#kickoff-button2').prop('disabled', true);
+
 
   function playMenuEffect() {
     effect.currentTime = 0;
@@ -276,23 +282,23 @@ $(function () {
           });
 
         //sound on & off button
-        $('#ingame-bgm-button')
-          .off('click')
-          .click(function () {
-            let currentBgmButton = $(this).css('background-image');
-            if (currentBgmButton.includes(bgmOnOffList[0])) {
-              //song on 일 때 //main-menu에서의 세팅과 일치해야함
-              $(this).css('background-image', `url('${bgmOnOffList[1]}')`);
-              $('#setting-mute').css('background-image', "url('soundoff.png')"); //main쪽 아이톤도 바꿔야함
-              bgmAudio.muted = true;
-              $('#setting-sounds').prop('disabled', true); //prop으로 컨트롤바 사용 할지 말지 지정
-            } else {
-              $(this).css('background-image', `url('${bgmOnOffList[0]}')`);
-              $('#setting-mute').css('background-image', "url('soundon.png')"); //main쪽 아이톤도 바꿔야함
-              bgmAudio.muted = false;
-              $('#setting-sounds').prop('disabled', false); //prop으로 컨트롤바 사용 할지 말지 지정
-            }
-          });
+        // $('#ingame-bgm-button')
+        //   .off('click')
+        //   .click(function () {
+        //     let currentBgmButton = $(this).css('background-image');
+        //     if (currentBgmButton.includes(bgmOnOffList[0])) {
+        //       //song on 일 때 //main-menu에서의 세팅과 일치해야함
+        //       $(this).css('background-image', `url('${bgmOnOffList[1]}')`);
+        //       $('#setting-mute').css('background-image', "url('assets/soundoff.png')"); //main쪽 아이톤도 바꿔야함
+        //       bgmAudio.muted = true;
+        //       $('#setting-sounds').prop('disabled', true); //prop으로 컨트롤바 사용 할지 말지 지정
+        //     } else {
+        //       $(this).css('background-image', `url('${bgmOnOffList[0]}')`);
+        //       $('#setting-mute').css('background-image', "url('assets/soundon.png')"); //main쪽 아이톤도 바꿔야함
+        //       bgmAudio.muted = false;
+        //       $('#setting-sounds').prop('disabled', false); //prop으로 컨트롤바 사용 할지 말지 지정
+        //     }
+        //   });
 
         //ingame play
       });
@@ -326,6 +332,10 @@ $(function () {
     <button id="ingame-reset-button"></button>
     <button id="ingame-pause-button"></button>
 `);
+
+    // BGM 상태에 따라 버튼 이미지 설정
+    $('#ingame-bgm-button').css('background-image', 
+      `url('${bgmAudio.muted ? bgmOnOffList[1] : bgmOnOffList[0]}')`);
 
     // 공 생성
     $('#ingame-main').append('<div id="ball"></div>');
@@ -406,7 +416,7 @@ $(function () {
     $(document)
       .off('keydown')
       .on('keydown', function (e) {
-        const step = 10;
+        const step = 30;
         const player = $('#player');
         const px = player.position().left;
 
@@ -456,15 +466,17 @@ $(function () {
         location.reload();
       });
 
+    //sound on & off button
     $('#ingame-bgm-button')
       .off('click')
-      .on('click', function () {
+      .click(function () {
         const isMuted = bgmAudio.muted;
         bgmAudio.muted = !isMuted;
-        $(this).css(
-          'background-image',
-          `url(${isMuted ? 'assets/SongOn.png' : 'assets/SongOff.png'})`
-        );
+        $(this).css('background-image', 
+          `url('${!isMuted ? bgmOnOffList[1] : bgmOnOffList[0]}')`);
+        $('#setting-mute').css('background-image', 
+          `url('assets/${!isMuted ? 'soundoff.png' : 'soundon.png'}')`);
+        $('#setting-sounds').prop('disabled', !isMuted);
       });
 
     $('#ingame-pause-button')
@@ -516,14 +528,14 @@ $(function () {
         playMenuEffect();
         const isMuted = bgmAudio.muted;
         if (isMuted) {
-          $(this).css('background-image', "url('soundon.png')");
-          $('#ingame-bgm-button').css('background-image', `url('${bgmOnOffList[0]}')`); //ingame 쪽 아이콘도 sound on으로 바꿔야 함
-
+          $(this).css('background-image', "url('assets/soundon.png')"); //버그 수정
+          $('#ingame-bgm-button').css('background-image', `url('assets/${bgmOnOffList[0]}')`); //ingame 쪽 아이콘도 sound on으로 바꿔야 함
           bgmAudio.muted = false;
           $('#setting-sounds').prop('disabled', false); //prop으로 컨트롤바 사용 할지 말지 지정
+
         } else {
-          $(this).css('background-image', "url('soundoff.png')");
-          $('#ingame-bgm-button').css('background-image', `url('${bgmOnOffList[1]}')`); //ingame 쪽 아이콘도 sound on으로 바꿔야 함
+          $(this).css('background-image', "url('assets/soundoff.png')"); //버그 수정
+          $('#ingame-bgm-button').css('background-image', `url('assets/${bgmOnOffList[1]}')`); //ingame 쪽 아이콘도 sound on으로 바꿔야 함
           bgmAudio.muted = true;
           $('#setting-sounds').prop('disabled', true);
         }
