@@ -56,14 +56,12 @@
     </div>
 
     <div id="ingame">
-      <img id="ingame-image" src="assets/background.png" />
-      <div id="ingame-story"></div>
-      <!--story작성-->
-      <div id="ingame-main">
+      <canvas id="gameCanvas" width="800" height="800"></canvas>
+      <div id="ingame-ui">
         <div id="ingame-ui-score">000000</div>
         <div id="ingame-ui-timer">01:00</div>
         <div id="ingame-ui-match">0 - 0</div>
-
+        <div id="ingame-ui-special">남은 스페셜슛: 3</div>
         <button id="ingame-bgm-button"></button>
         <button id="ingame-reset-button"></button>
         <button id="ingame-pause-button"></button>
