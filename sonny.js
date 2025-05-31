@@ -17,11 +17,11 @@ $(function () {
   let curr_uniform = 'assets/homeUniform.png'; //현재 유니폼
   let curr_stage = 0;
 
-  // $(document).on('mousemove', function(e) {
-  //   // e.pageX, e.pageY는 문서 전체 기준 좌표
-  //   // e.clientX, e.clientY는 브라우저 창(뷰포트) 기준 좌표
-  //   console.log('마우스 위치:', e.pageX, e.pageY);
-  // }); //마우스 위치 확인용 
+  $(document).on('mousemove', function(e) {
+    // e.pageX, e.pageY는 문서 전체 기준 좌표
+    // e.clientX, e.clientY는 브라우저 창(뷰포트) 기준 좌표
+    console.log('마우스 위치:', e.pageX, e.pageY);
+  }); //마우스 위치 확인용 
   
   // 필요할때마다 쓰면 됨
 
@@ -36,6 +36,14 @@ $(function () {
   let matchScore = [0, 0];
   let timeLeft = 60;
   let timerInterval;
+  let playerDirX = 0; // 좌우 방향
+  let playerDirY = 0; // 상하 방향
+  const maxSpeed = 3; // 좌우 최대 속도
+  const maxSpeedY = 3; // 상하 최대 속도
+  const FIELD_LEFT = 240;
+  const FIELD_RIGHT = 760;
+  let gkDirection = 1; // 골키퍼 이동 방향 (1: 오른쪽, -1: 왼쪽)
+  const gkSpeed = 3; // 골키퍼 이동 속도
 
   function updateScore(value) {
     score = value;
@@ -62,7 +70,15 @@ $(function () {
   function resetBallToPlayer() {
     const player = $('#player');
     const px = player.position().left;
-    $('#ball').css({ top: '630px', left: px + 10 + 'px' });
+    const py = player.position().top;
+    const pw = player.width();
+    const bh = $('#ball').height();
+    const bw = $('#ball').width();
+    // 공을 플레이어 중앙 위에 위치
+    $('#ball').css({
+      top: (py - bh / 2-10) + 'px',
+      left: (px + pw / 2 - bw / 2) + 'px'
+    });
     x = $('#ball').position().left;
     y = $('#ball').position().top;
     ballDirX = 0;
@@ -82,6 +98,7 @@ $(function () {
       }
     }, 1000);
   }
+  
   function moveBall() {
     if (gamePaused) return;
     if (ballLaunched) {
@@ -90,11 +107,11 @@ $(function () {
       $('#ball').css({ top: y + 'px', left: x + 'px' });
 
       // Always check for goal collision
-      const gx = 445;
+      const gx = 530;
       const gy = 130;
       const gw = 110;
       const gh = 50;
-      const BALL_SIZE = 25;
+      const BALL_SIZE = 20;
       const bx = $('#ball').offset().left;
       const by = $('#ball').offset().top;
 
@@ -106,8 +123,6 @@ $(function () {
         return;
       }
 
-      const FIELD_LEFT = 240;
-      const FIELD_RIGHT = 760;
       const FIELD_TOP = 160;
       const FIELD_BOTTOM = 680;
 
@@ -144,15 +159,33 @@ $(function () {
         const bw = $b.width();
         const bh = $b.height();
 
-        if (x + 20 > bx && x < bx + bw && y + 20 > by && y < by + bh) {
-          let hp = parseInt($b.attr('data-hp'));
+        // 충돌 체크 (사각형 겹침)
+        if (
+          x + BALL_SIZE > bx &&
+          x < bx + bw &&
+          y + BALL_SIZE > by &&
+          y < by + bh
+        ) {
+          // 중심점 차이로 충돌 방향 판정
+          let ballCenterX = x + BALL_SIZE / 2;
+          let ballCenterY = y + BALL_SIZE / 2;
+          let blockCenterX = bx + bw / 2;
+          let blockCenterY = by + bh / 2;
+          let dx = ballCenterX - blockCenterX;
+          let dy = ballCenterY - blockCenterY;
+      
+          
           let damage = 1;
 
           // 파워모드: defender는 1회만 파괴 가능, brick/referee는 전부 파괴 가능
           if (specialMode === 'power') {
             if ($b.hasClass('gk')) {
-              ballLaunched = false;
-              resetBallToPlayer();
+              // 골키퍼는 파워모드에서도 튕기기만
+              if (Math.abs(dx) > Math.abs(dy)) {
+                ballDirX *= -1;
+              } else {
+                ballDirY *= -1;
+              }
               specialMode = null;
               hit = true;
               return;
@@ -162,7 +195,11 @@ $(function () {
               // 첫 defender만 파괴
               $b.remove();
               updateScore(score + 100);
-              ballDirY *= -1;
+              if (Math.abs(dx) > Math.abs(dy)) {
+                ballDirX *= -1;
+              } else {
+                ballDirY *= -1;
+              }
               specialMode = null;
               hit = true;
               return;
@@ -173,18 +210,29 @@ $(function () {
               updateScore(score + 50);
               return; // 반사 없이 진행
             }
-
             if ($b.hasClass('referee')) {
               $b.remove();
               specialShootCount++;
-              return; // 반사 없이 진행
+              // 파워모드에서는 반사 없이 진행
+              return;
             }
           } else {
             // 일반 슛
             if ($b.hasClass('gk')) {
-              ballLaunched = false;
-              resetBallToPlayer();
-            } else {
+              if (Math.abs(dx) > Math.abs(dy)) {
+                ballDirX *= -1;
+              } else {
+                ballDirY *= -1;
+              }
+              hit = true;
+              return;
+            } else if ($b.hasClass('defender')) {
+              if (Math.abs(dx) > Math.abs(dy)) {
+                ballDirX *= -1;
+              } else {
+                ballDirY *= -1;
+              }
+              let hp = parseInt($b.attr('data-hp'));
               hp -= specialMode === 'curve' ? 3 : 1;
               if (hp > 0) {
                 $b.attr('data-hp', hp);
@@ -192,15 +240,104 @@ $(function () {
               } else {
                 $b.remove();
               }
-              if ($b.hasClass('defender')) updateScore(score + 100);
-              if ($b.hasClass('brick')) updateScore(score + 50);
-              if ($b.hasClass('referee')) specialShootCount++;
+              updateScore(score + 100);
+              hit = true;
+            } else if ($b.hasClass('brick')) {
+              if (Math.abs(dx) > Math.abs(dy)) {
+                ballDirX *= -1;
+              } else {
+                ballDirY *= -1;
+              }
+              let hp = parseInt($b.attr('data-hp'));
+              hp -= specialMode === 'curve' ? 3 : 1;
+              if (hp > 0) {
+                $b.attr('data-hp', hp);
+                $b.css('opacity', hp / 3);
+              } else {
+                $b.remove();
+              }
+              updateScore(score + 50);
+              hit = true;
+            } else if ($b.hasClass('referee')) {
+              if (Math.abs(dx) > Math.abs(dy)) {
+                ballDirX *= -1;
+              } else {
+                ballDirY *= -1;
+              }
+              let hp = parseInt($b.attr('data-hp'));
+              hp -= specialMode === 'curve' ? 3 : 1;
+              if (hp > 0) {
+                $b.attr('data-hp', hp);
+                $b.css('opacity', hp / 3);
+              } else {
+                $b.remove();
+              }
+              specialShootCount++;
+              hit = true;
             }
-
-            ballDirY *= -1;
-            hit = true;
           }
         }
+    
+
+        // Hit check
+        // if (x + 20 > bx && x < bx + bw && y + 20 > by && y < by + bh) {
+        //   let hp = parseInt($b.attr('data-hp'));
+        //   let damage = 1;
+
+        //   // 파워모드: defender는 1회만 파괴 가능, brick/referee는 전부 파괴 가능
+        //   if (specialMode === 'power') {
+        //     if ($b.hasClass('gk')) {
+        //       ballDirY *= -1; // 공이 튕겨나가도록 방향 반전
+        //       specialMode = null;
+        //       hit = true;
+        //       return;
+        //     }
+
+        //     if ($b.hasClass('defender')) {
+        //       // 첫 defender만 파괴
+        //       $b.remove();
+        //       updateScore(score + 100);
+        //       ballDirY *= -1;
+        //       specialMode = null;
+        //       hit = true;
+        //       return;
+        //     }
+
+        //     if ($b.hasClass('brick')) {
+        //       $b.remove();
+        //       updateScore(score + 50);
+        //       return; // 반사 없이 진행
+        //     }
+
+        //     if ($b.hasClass('referee')) {
+        //       $b.remove();
+        //       specialShootCount++;
+        //       return; // 반사 없이 진행
+        //     }
+        //   } else {
+        //     // 일반 슛
+        //     if ($b.hasClass('gk')) {
+        //       ballDirY *= -1; // 공이 튕겨나가도록 방향 반전
+        //       hit = true;
+        //       return;
+        //     } else {
+        //       hp -= specialMode === 'curve' ? 3 : 1;
+        //       if (hp > 0) {
+        //         $b.attr('data-hp', hp);
+        //         $b.css('opacity', hp / 3);
+        //       } else {
+        //         $b.remove();
+        //       }
+        //       if ($b.hasClass('defender')) updateScore(score + 100);
+        //       if ($b.hasClass('brick')) updateScore(score + 50);
+        //       if ($b.hasClass('referee')) specialShootCount++;
+        //     }
+
+        //     ballDirY *= -1;
+        //     hit = true;
+        //   }
+        // }
+
       });
       // Player 반사
       const player = $('#player');
@@ -224,9 +361,121 @@ $(function () {
     }
   }
 
+  // 골키퍼 움직임 추가
+  function moveGoalkeeper() {
+    const gk = $('.gk');
+    if (!gk.length) return; // 골키퍼가 없으면 리턴
+    
+    const gx = gk.position().left;
+    const gkWidth = gk.width();
+    
+    // 새로운 위치 계산
+    let newX = gx + (gkDirection * gkSpeed);
+    
+    // 경계에 도달하면 방향 전환
+    if (newX < 340) {
+      newX = 340;
+      gkDirection = 1; // 오른쪽으로 방향 전환
+    }
+    if (newX + gkWidth > 650) {
+      newX = 650 - gkWidth;
+      gkDirection = -1; // 왼쪽으로 방향 전환
+    }
+    
+    // 위치 업데이트
+    gk.css('left', newX + 'px');
+  }
+
+  function movePlayer() {
+    const player = $('#player');
+    const ball = $('#ball');
+    if (!player.length || !ball.length) return;
+    
+    const px = player.position().left;
+    const py = player.position().top;
+    const pw = player.width();
+    const bh = $('#ball').height();
+    const bw = $('#ball').width();
+
+    // 새로운 위치 계산
+    let newX = px + (playerDirX * maxSpeed);
+    let newY = py + (playerDirY * maxSpeedY);
+
+    // 경계 체크 (x: 250~740, y: 410~690)
+    if (newX < 250) newX = 250;
+    if (newX > 740) newX = 740;
+    if (newY < 410) newY = 410;
+    if (newY > 690) newY = 690;
+
+    // 위치 업데이트
+    player.css({ left: newX + 'px', top: newY + 'px' });
+
+    // 공이 발사되기 전이면 공도 같이 이동
+    if (!ballLaunched) {
+      $('#ball').css({
+        top: (newY - bh / 2-10) + 'px',
+        left: (newX + pw / 2 - bw / 2) + 'px'
+      });
+      x = $('#ball').position().left;
+      y = $('#ball').position().top;
+    }
+  }
+
+  // 플레이어 움직임을 주기적으로 업데이트
+  setInterval(movePlayer, 10);
+
+  // 플레이어 스타일 초기화
+  $('#player').css({
+    'will-change': 'left'
+  });
+
+  $(document)
+    .off('keydown keyup')
+    .on('keydown', function (e) {
+      if (e.key === 'ArrowLeft') playerDirX = -1;
+      if (e.key === 'ArrowRight') playerDirX = 1;
+      if (e.key === 'ArrowUp') playerDirY = -1;
+      if (e.key === 'ArrowDown') playerDirY = 1;
+      if (e.key === 'q') {
+        y = $('#ball').position().top;
+
+        if (specialShootCount > 0 && Math.abs(y - 630) < 30) {
+          specialShootCount--;
+          updateSpecialCount(specialShootCount);
+          specialMode = 'power';
+          ballLaunched = true;
+          ballDirX = 0;
+          ballDirY = -9;
+        }
+      }
+      if (e.key === 'w') {
+        y = $('#ball').position().top;
+
+        if (specialShootCount > 0 && Math.abs(y - 630) < 30) {
+          specialShootCount--;
+          updateSpecialCount(specialShootCount);
+          specialMode = 'curve';
+          ballLaunched = true;
+          ballDirX = 4;
+          ballDirY = -4;
+        }
+      }
+      if (e.key === ' ') {
+        if (!ballLaunched) {
+          specialMode = null;
+          ballLaunched = true;
+          ballDirX = 0;
+          ballDirY = -9;
+        }
+      }
+    })
+    .on('keyup', function (e) {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') playerDirX = 0;
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') playerDirY = 0;
+    });
+
   setInterval(moveBall, 30);
-
-
+  setInterval(moveGoalkeeper, 16);
 
   function playMenuEffect() {
     effect.currentTime = 0;
@@ -427,58 +676,18 @@ $(function () {
       } else if (type === 'gk') {
         className = 'gk';
         hp = -1;
+        // 골키퍼 스타일 초기화
+        setTimeout(() => {
+          $('.gk').css({
+            'will-change': 'left',
+            'transition': 'none'
+          });
+        }, 100);
       }
       $('#ingame-main').append(
         `<div class="${className}" style="top:${top}px; left:${left}px; cursor: default;" data-hp="${hp}" id="block-${i}"></div>`
       );
     });
-
-    $(document)
-      .off('keydown')
-      .on('keydown', function (e) {
-        const step = 40;
-        const player = $('#player');
-        const px = player.position().left;
-
-        if (e.key === 'ArrowLeft' && px > 0) {
-          player.css('left', px - step + 'px');
-        }
-        if (e.key === 'ArrowRight' && px < 760) {
-          player.css('left', px + step + 'px');
-        }
-        if (e.key === 'q') {
-          y = $('#ball').position().top;
-
-          if (specialShootCount > 0 && Math.abs(y - 630) < 30) {
-            specialShootCount--;
-            updateSpecialCount(specialShootCount);
-            specialMode = 'power';
-            ballLaunched = true;
-            ballDirX = 0;
-            ballDirY = -9;
-          }
-        }
-        if (e.key === 'w') {
-          y = $('#ball').position().top;
-
-          if (specialShootCount > 0 && Math.abs(y - 630) < 30) {
-            specialShootCount--;
-            updateSpecialCount(specialShootCount);
-            specialMode = 'curve';
-            ballLaunched = true;
-            ballDirX = 4;
-            ballDirY = -4;
-          }
-        }
-        if (e.key === ' ') {
-          if (!ballLaunched) {
-            specialMode = null;
-            ballLaunched = true;
-            ballDirX = 0;
-            ballDirY = -9;
-          }
-        }
-      });
 
     $('#ingame-reset-button')
       .off('click')
@@ -497,6 +706,7 @@ $(function () {
         $('#setting-mute').css('background-image', 
           `url('assets/${!isMuted ? 'soundoff.png' : 'soundon.png'}')`);
         $('#setting-sounds').prop('disabled', !isMuted);
+        $(this).blur(); //버튼 클릭 후 포커스 해제
       });
 
     $('#ingame-pause-button')
@@ -622,5 +832,10 @@ $(function () {
         $('#main-elements').show();
         $('#setting-elements').hide();
       });
+  });
+
+  // 골키퍼 스타일 초기화
+  $('.gk').css({
+    'will-change': 'left'
   });
 });
