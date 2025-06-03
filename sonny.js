@@ -8,7 +8,7 @@
 
 $(function () {
   let gamePaused = false;
-  let savedGameState = null;
+
   const bgmAudio = $('#bgm')[0];
   const bgmList = ['assets/bgm0.mp3', 'assets/bgm1.mp3']; //bgm 추가하고싶으면 여기 바꾸면 됨
   const effect = $('#main-effect')[0]; //이펙트용
@@ -16,7 +16,6 @@ $(function () {
   const pauseList = ['assets/Pause.png', 'assets/Play.png']; //ingame에서 pause버튼 이미지 리스트
   const bgmOnOffList = ['assets/SongOn.png', 'assets/SongOff.png']; //ingame에서 bgm on off button list
   let curr_uniform = 'assets/homeUniform.png'; //현재 유니폼
-  let curr_stage = 0;
 
   // Canvas setup
   const canvas = document.getElementById('gameCanvas');
@@ -31,8 +30,6 @@ $(function () {
   let ballDirX = 0;
   let ballDirY = -4;
   let specialMode = null;
-  let ballX = 0;
-  let ballY = 0;
   let matchScore = [0, 0];
   let timeLeft = 60;
   let timerInterval;
@@ -55,12 +52,6 @@ $(function () {
     gkSpeed = 3;
     defenderHp = 3;
   }
-
-  // Field (background) settings
-  const FIELD_X = 100;
-  const FIELD_Y = 0;
-  const FIELD_WIDTH = 800;
-  const FIELD_HEIGHT = 800;
 
   // Game object sizes (from CSS)
   const BLOCK_WIDTH = 50;
@@ -153,7 +144,7 @@ $(function () {
         updateTimerDisplay();
       } else {
         clearInterval(timerInterval);
-        callback();
+        showResultScreen(matchScore[0] > matchScore[1]);
       }
     }, 1000);
   }
@@ -699,12 +690,8 @@ $(function () {
 
     startTimer(() => {
       const [me, enemy] = matchScore;
-      if (me > enemy) {
-        alert('8강 승리! 4강 진출');
-      } else {
-        alert('패배! 다시 도전하세요.');
-        location.reload();
-      }
+      const won = me > enemy;
+      showResultScreen(won); // Call result screen with outcome
     });
   }
 
@@ -902,4 +889,34 @@ $(function () {
     width: '50px',
     height: '50px',
   });
+  // Show the result screen, hiding all other game/menu elements
+  function showResultScreen(won) {
+    // Placeholder stat values to avoid runtime errors; adjust based on actual gameplay logic if needed
+    const [me, enemy] = matchScore;
+    const goalCount = matchScore[0];
+    // Immediately halt gameplay logic before showing results
+    gamePaused = true;
+    running = false;
+
+    $('#main').hide();
+    $('#ingame').hide();
+    $('#ingame-pause').hide();
+
+    $('#result-title').text(won ? '승리' : '패배');
+    $('#result-score').text(score.toString().padStart(6, '0'));
+
+    $('#match-result').html(`경기결과<br />한국 ${me} : ${enemy} 상대팀`);
+    $('#match-detail').html(`경기 내용<br />
+    골 ${goalCount}회 ${goalCount * 100}점<br />
+    실점 ${enemy}회 ${enemy * -50}점`);
+
+    $('#result-screen').css('display', 'flex');
+    if (won) {
+      $('#next-game-btn').show();
+      $('#select-stage-btn').hide();
+    } else {
+      $('#next-game-btn').hide();
+      $('#select-stage-btn').show();
+    }
+  }
 });

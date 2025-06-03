@@ -74,5 +74,21 @@
       <button id="continue">continue</button>
       <button id="back-to-main-menu">main menu</button>
     </div>
+
+    <div id="result-screen" style="display: none">
+      <div class="result-container">
+        <h1 id="result-title">승리</h1>
+        <p id="match-result">경기결과<br />한국 0 : 0 상대팀</p>
+        <p id="match-detail">
+          경기 내용<br />
+          골 00회 0점<br />
+          실점 00회 0점
+        </p>
+        <h2>SCORE<br /><span id="result-score">000000</span></h2>
+        <button onclick="location.reload()">다시하기</button>
+        <button id="next-game-btn">다음 경기로</button>
+        <button id="select-stage-btn">경기선택</button>
+      </div>
+    </div>
   </body>
 </html>
