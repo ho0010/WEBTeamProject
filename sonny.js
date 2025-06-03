@@ -147,11 +147,106 @@ $(function () {
     }, 1000);
   }
 
+  // Helper for collision detection (for PowerShot block)
+  function detectCollision(ball, block) {
+    return (
+      ball.x + ball.radius > block.x &&
+      ball.x - ball.radius < block.x + block.width &&
+      ball.y + ball.radius > block.y &&
+      ball.y - ball.radius < block.y + block.height
+    );
+  }
+
   function moveBall() {
     if (gamePaused) return;
     if (ballLaunched) {
       ball.x += ballDirX;
       ball.y += ballDirY;
+
+      // Block collisions (including PowerShot logic)
+      let hit = false;
+      if (ball.isPowerShot) {
+        let destroyed = 0;
+        const remainingBlocks = [];
+
+        for (const block of blocks) {
+          if (detectCollision(ball, block) && destroyed < 2 && block.type !== 'gk') {
+            destroyed++;
+            updateScore(score + (block.type === 'defender' ? 100 : 50));
+            if (block.type === 'referee') specialShootCount++;
+            continue; // Do not add to remainingBlocks (destroyed)
+          }
+          remainingBlocks.push(block);
+        }
+
+        blocks = remainingBlocks;
+
+        if (destroyed >= 2) {
+          ball.isPowerShot = false;
+          specialMode = null;
+          ballDirX = 0;
+          ballDirY = -4;
+          $('#gameCanvas').removeClass('powershot-active');
+        }
+      } else {
+        if (!ball.isPowerShot) {
+          blocks.forEach((block) => {
+            if (hit) return;
+            if (
+              ball.x + ball.radius > block.x &&
+              ball.x - ball.radius < block.x + block.width &&
+              ball.y + ball.radius > block.y &&
+              ball.y - ball.radius < block.y + block.height
+            ) {
+              // Calculate overlap distances
+              const overlapLeft = ball.x + ball.radius - block.x;
+              const overlapRight = block.x + block.width - (ball.x - ball.radius);
+              const overlapTop = ball.y + ball.radius - block.y;
+              const overlapBottom = block.y + block.height - (ball.y - ball.radius);
+              const minOverlapX = Math.min(overlapLeft, overlapRight);
+              const minOverlapY = Math.min(overlapTop, overlapBottom);
+
+              // Determine collision side
+              if (minOverlapX < minOverlapY) {
+                // Horizontal collision (left or right)
+                ballDirX *= -1;
+                // Adjust position to prevent sticking
+                if (overlapLeft < overlapRight) {
+                  ball.x = block.x - ball.radius;
+                } else {
+                  ball.x = block.x + block.width + ball.radius;
+                }
+              } else if (minOverlapY < minOverlapX) {
+                // Vertical collision (top or bottom)
+                ballDirY *= -1;
+                if (overlapTop < overlapBottom) {
+                  ball.y = block.y - ball.radius;
+                } else {
+                  ball.y = block.y + block.height + ball.radius;
+                }
+              } else {
+                // True corner: reflect both directions
+                ballDirX *= -1;
+                ballDirY *= -1;
+              }
+
+              if (block.type === 'gk') {
+                hit = true;
+                return;
+              }
+              block.hp -= specialMode === 'curve' ? 3 : 1;
+              if (block.hp <= 0) {
+                blocks = blocks.filter((b) => b !== block);
+                if (block.type === 'referee') {
+                  specialShootCount++;
+                }
+                updateScore(score + (block.type === 'defender' ? 100 : 50));
+              }
+              hit = true;
+            }
+          });
+        }
+      }
 
       // Goal collision check
       const goalX = 480;
@@ -165,6 +260,11 @@ $(function () {
         ball.y + ball.radius > goalY &&
         ball.y - ball.radius < goalY + goalHeight
       ) {
+        if (ball.isPowerShot) {
+          ball.isPowerShot = false;
+          specialMode = null;
+          $('#gameCanvas').removeClass('powershot-active');
+        }
         updateScore(score + 1000);
         updateMatchScore(matchScore[0] + 1, matchScore[1]);
         ballLaunched = false;
@@ -192,91 +292,14 @@ $(function () {
         updateScore(score - 300);
         updateMatchScore(matchScore[0], matchScore[1] + 1);
         ballLaunched = false;
+        if (ball.isPowerShot) {
+          ball.isPowerShot = false;
+          specialMode = null;
+          $('#gameCanvas').removeClass('powershot-active'); // ✅ 여기서도 해제
+        }
         resetBallToPlayer();
         return;
       }
-
-      // Block collisions
-      let hit = false;
-      blocks.forEach((block) => {
-        if (hit && specialMode !== 'power') return;
-
-        if (
-          ball.x + ball.radius > block.x &&
-          ball.x - ball.radius < block.x + block.width &&
-          ball.y + ball.radius > block.y &&
-          ball.y - ball.radius < block.y + block.height
-        ) {
-          // Calculate overlap distances
-          const overlapLeft = ball.x + ball.radius - block.x;
-          const overlapRight = block.x + block.width - (ball.x - ball.radius);
-          const overlapTop = ball.y + ball.radius - block.y;
-          const overlapBottom = block.y + block.height - (ball.y - ball.radius);
-          const minOverlapX = Math.min(overlapLeft, overlapRight);
-          const minOverlapY = Math.min(overlapTop, overlapBottom);
-
-          // Determine collision side
-          if (minOverlapX < minOverlapY) {
-            // Horizontal collision (left or right)
-            ballDirX *= -1;
-            // Adjust position to prevent sticking
-            if (overlapLeft < overlapRight) {
-              ball.x = block.x - ball.radius;
-            } else {
-              ball.x = block.x + block.width + ball.radius;
-            }
-          } else if (minOverlapY < minOverlapX) {
-            // Vertical collision (top or bottom)
-            ballDirY *= -1;
-            if (overlapTop < overlapBottom) {
-              ball.y = block.y - ball.radius;
-            } else {
-              ball.y = block.y + block.height + ball.radius;
-            }
-          } else {
-            // True corner: reflect both directions
-            ballDirX *= -1;
-            ballDirY *= -1;
-          }
-
-          if (specialMode === 'power') {
-            if (block.type === 'gk') {
-              specialMode = null;
-              hit = true;
-              return;
-            }
-            if (block.type === 'defender') {
-              blocks = blocks.filter((b) => b !== block);
-              updateScore(score + 100);
-              specialMode = null;
-              hit = true;
-              return;
-            }
-            if (block.type === 'brick' || block.type === 'referee') {
-              blocks = blocks.filter((b) => b !== block);
-              if (block.type === 'referee') {
-                specialShootCount++;
-              }
-              updateScore(score + (block.type === 'defender' ? 100 : 50));
-              return;
-            }
-          } else {
-            if (block.type === 'gk') {
-              hit = true;
-              return;
-            }
-            block.hp -= specialMode === 'curve' ? 3 : 1;
-            if (block.hp <= 0) {
-              blocks = blocks.filter((b) => b !== block);
-              if (block.type === 'referee') {
-                specialShootCount++;
-              }
-              updateScore(score + (block.type === 'defender' ? 100 : 50));
-            }
-            hit = true;
-          }
-        }
-      });
 
       // Player collision
       if (
@@ -425,25 +448,19 @@ $(function () {
       if (e.key === 'ArrowRight') playerDirX = 1;
       if (e.key === 'ArrowUp') playerDirY = -1;
       if (e.key === 'ArrowDown') playerDirY = 1;
-      if (e.key === 'q') {
-        if (specialShootCount > 0 && Math.abs(ball.y - 630) < 30) {
-          specialShootCount--;
-          updateSpecialCount(specialShootCount);
-          specialMode = 'power';
-          ballLaunched = true;
-          ballDirX = 0;
-          ballDirY = -9;
-        }
-      }
-      if (e.key === 'w') {
-        if (specialShootCount > 0 && Math.abs(ball.y - 630) < 30) {
-          specialShootCount--;
-          updateSpecialCount(specialShootCount);
-          specialMode = 'curve';
-          ballLaunched = true;
-          ballDirX = 4;
-          ballDirY = -4;
-        }
+      if (e.key === 'q' || e.key === 'ㅂ') {
+        console.log('Q키 눌림');
+        if (specialShootCount <= 0 || ballLaunched) return;
+        specialShootCount--;
+        updateSpecialCount(specialShootCount);
+        specialMode = 'power';
+        ball.isPowerShot = true; // ← 이것이 핵심입니다!
+        $('#gameCanvas').addClass('powershot-active'); // ✅ 이펙트 적용
+
+        ballLaunched = true;
+        ballDirX = 0;
+        ballDirY = -9;
+        moveBall(); // Immediately trigger moveBall for PowerShot effect
       }
       if (e.key === ' ') {
         if (!ballLaunched) {
@@ -487,7 +504,7 @@ $(function () {
 
     // Initialize game objects
     player.x = 500;
-    player.y = 700;
+    player.y = 650;
     resetBallToPlayer();
 
     // Initialize blocks
