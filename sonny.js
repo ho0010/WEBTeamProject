@@ -168,25 +168,59 @@ $(function () {
       if (ball.isPowerShot) {
         let destroyed = 0;
         const remainingBlocks = [];
+        let closestBlock = null;
+        let minDistance = Infinity;
 
+        // Find the closest block that is actually colliding with the ball
         for (const block of blocks) {
-          if (detectCollision(ball, block) && destroyed < 2 && block.type !== 'gk') {
-            destroyed++;
-            updateScore(score + (block.type === 'defender' ? 100 : 50));
-            if (block.type === 'referee') specialShootCount++;
-            continue; // Do not add to remainingBlocks (destroyed)
+          if (block.type === 'gk') {
+            remainingBlocks.push(block);
+            continue;
           }
-          remainingBlocks.push(block);
+
+          // Check if the ball is actually colliding with the block
+          const isColliding = 
+            ball.x + ball.radius > block.x &&
+            ball.x - ball.radius < block.x + block.width &&
+            ball.y + ball.radius > block.y &&
+            ball.y - ball.radius < block.y + block.height;
+
+          if (isColliding) {
+            // Calculate distance to block's center
+            const blockCenterX = block.x + block.width / 2;
+            const blockCenterY = block.y + block.height / 2;
+            const distance = Math.sqrt(
+              Math.pow(ball.x - blockCenterX, 2) + 
+              Math.pow(ball.y - blockCenterY, 2)
+            );
+
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestBlock = block;
+            }
+          } else {
+            remainingBlocks.push(block);
+          }
+        }
+
+        // If we found a block to destroy
+        if (closestBlock) {
+          destroyed++;
+          updateScore(score + (closestBlock.type === 'defender' ? 100 : 50));
+          if (closestBlock.type === 'referee') {
+            specialShootCount++;
+            updateSpecialCount(specialShootCount);
+          }
         }
 
         blocks = remainingBlocks;
 
-        if (destroyed >= 2) {
+        if (destroyed >= 1) {
           ball.isPowerShot = false;
           specialMode = null;
           ballDirX = 0;
           ballDirY = -4;
-          $('#gameCanvas').removeClass('powershot-active');
+          $('#ingame').removeClass('powershot-active');
         }
       } else {
         if (!ball.isPowerShot) {
@@ -239,6 +273,8 @@ $(function () {
                 blocks = blocks.filter((b) => b !== block);
                 if (block.type === 'referee') {
                   specialShootCount++;
+                  updateSpecialCount(specialShootCount);
+                  
                 }
                 updateScore(score + (block.type === 'defender' ? 100 : 50));
               }
@@ -263,7 +299,7 @@ $(function () {
         if (ball.isPowerShot) {
           ball.isPowerShot = false;
           specialMode = null;
-          $('#gameCanvas').removeClass('powershot-active');
+          $('#ingame').removeClass('powershot-active');
         }
         updateScore(score + 1000);
         updateMatchScore(matchScore[0] + 1, matchScore[1]);
@@ -295,7 +331,7 @@ $(function () {
         if (ball.isPowerShot) {
           ball.isPowerShot = false;
           specialMode = null;
-          $('#gameCanvas').removeClass('powershot-active'); // ✅ 여기서도 해제
+          $('#ingame').removeClass('powershot-active');
         }
         resetBallToPlayer();
         return;
@@ -455,7 +491,7 @@ $(function () {
         updateSpecialCount(specialShootCount);
         specialMode = 'power';
         ball.isPowerShot = true; // ← 이것이 핵심입니다!
-        $('#gameCanvas').addClass('powershot-active'); // ✅ 이펙트 적용
+        $('#ingame').addClass('powershot-active'); // ✅ 이펙트 적용
 
         ballLaunched = true;
         ballDirX = 0;
@@ -466,7 +502,7 @@ $(function () {
         if (!ballLaunched) {
           specialMode = null;
           ballLaunched = true;
-          ballDirX = 0;
+          ballDirX = Math.random()*3-1;
           ballDirY = -4;
         }
       }
