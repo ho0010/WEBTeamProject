@@ -43,7 +43,18 @@ $(function () {
   const FIELD_LEFT = 240;
   const FIELD_RIGHT = 760;
   let gkDirection = 1;
-  const gkSpeed = 3;
+
+  // Stage difficulty settings
+  const selectedStage = localStorage.getItem('selectedStage') || 'quarter';
+  let gkSpeed = 1;
+  let defenderHp = 1;
+  if (selectedStage === 'semifinal') {
+    gkSpeed = 2;
+    defenderHp = 2;
+  } else if (selectedStage === 'final') {
+    gkSpeed = 3;
+    defenderHp = 3;
+  }
 
   // Field (background) settings
   const FIELD_X = 100;
@@ -82,7 +93,7 @@ $(function () {
     y: 180, // example, will be set by defenseLayout
     width: GK_WIDTH,
     height: GK_HEIGHT,
-    speed: 3,
+    speed: gkSpeed,
   };
 
   let blocks = [];
@@ -179,7 +190,7 @@ $(function () {
           }
 
           // Check if the ball is actually colliding with the block
-          const isColliding = 
+          const isColliding =
             ball.x + ball.radius > block.x &&
             ball.x - ball.radius < block.x + block.width &&
             ball.y + ball.radius > block.y &&
@@ -190,8 +201,7 @@ $(function () {
             const blockCenterX = block.x + block.width / 2;
             const blockCenterY = block.y + block.height / 2;
             const distance = Math.sqrt(
-              Math.pow(ball.x - blockCenterX, 2) + 
-              Math.pow(ball.y - blockCenterY, 2)
+              Math.pow(ball.x - blockCenterX, 2) + Math.pow(ball.y - blockCenterY, 2)
             );
 
             if (distance < minDistance) {
@@ -274,7 +284,6 @@ $(function () {
                 if (block.type === 'referee') {
                   specialShootCount++;
                   updateSpecialCount(specialShootCount);
-                  
                 }
                 updateScore(score + (block.type === 'defender' ? 100 : 50));
               }
@@ -369,7 +378,7 @@ $(function () {
 
   // 골키퍼 움직임 추가
   function moveGoalkeeper() {
-    goalkeeper.x += gkDirection * gkSpeed;
+    goalkeeper.x += gkDirection * goalkeeper.speed;
 
     if (goalkeeper.x < 340) {
       goalkeeper.x = 340;
@@ -502,7 +511,7 @@ $(function () {
         if (!ballLaunched) {
           specialMode = null;
           ballLaunched = true;
-          ballDirX = Math.random()*3-1;
+          ballDirX = Math.random() * 3 - 1;
           ballDirY = -4;
         }
       }
@@ -529,7 +538,8 @@ $(function () {
   });
 
   // Game initialization
-  function quarter_finals() {
+  // defenderHp: int, gkSpeed: int, formation: string
+  function quarter_finals(defenderHp, gkSpeed, formation) {
     $('#main').hide();
     $('#ingame').show();
 
@@ -543,56 +553,138 @@ $(function () {
     player.y = 650;
     resetBallToPlayer();
 
-    // Initialize blocks
-    blocks = [
-      // Example: [top, left, type]
-      // [180, 470, 'gk'],
-      // [240, 270, 'brick'], ...
-    ];
-    const defenseLayout = [
-      [180, 470, 'gk'],
-      [240, 270, 'brick'],
-      [240, 320, 'defender'],
-      [240, 370, 'brick'],
-      [240, 420, 'defender'],
-      [240, 470, 'brick'],
-      [240, 520, 'defender'],
-      [240, 570, 'brick'],
-      [240, 620, 'defender'],
-      [240, 670, 'brick'],
-      [280, 270, 'brick'],
-      [280, 320, 'brick'],
-      [280, 370, 'brick'],
-      [280, 420, 'defender'],
-      [280, 470, 'brick'],
-      [280, 520, 'defender'],
-      [280, 570, 'brick'],
-      [280, 620, 'brick'],
-      [280, 670, 'brick'],
-      [320, 270, 'referee'],
-      [320, 320, 'brick'],
-      [320, 370, 'defender'],
-      [320, 420, 'brick'],
-      [320, 470, 'defender'],
-      [320, 520, 'brick'],
-      [320, 570, 'defender'],
-      [320, 620, 'brick'],
-      [320, 670, 'brick'],
-      [360, 270, 'brick'],
-      [360, 320, 'brick'],
-      [360, 370, 'brick'],
-      [360, 420, 'brick'],
-      [360, 470, 'defender'],
-      [360, 520, 'brick'],
-      [360, 570, 'brick'],
-      [360, 620, 'brick'],
-      [360, 670, 'brick'],
-    ];
+    // Dynamic defense layout based on formation
+    let defenseLayout;
+    if (formation === 'final') {
+      // Hardest: denser defenders, more bricks
+      defenseLayout = [
+        [180, 470, 'gk'],
+        [240, 270, 'brick'],
+        [240, 320, 'brick'],
+        [240, 370, 'defender'],
+        [240, 420, 'brick'],
+        [240, 470, 'defender'],
+        [240, 520, 'brick'],
+        [240, 570, 'defender'],
+        [240, 620, 'brick'],
+        [240, 670, 'brick'],
+        [280, 270, 'brick'],
+        [280, 320, 'defender'],
+        [280, 370, 'brick'],
+        [280, 420, 'brick'],
+        [280, 470, 'brick'],
+        [280, 520, 'brick'],
+        [280, 570, 'brick'],
+        [280, 620, 'defender'],
+        [280, 670, 'brick'],
+        [320, 270, 'referee'],
+        [320, 320, 'brick'],
+        [320, 370, 'defender'],
+        [320, 420, 'brick'],
+        [320, 470, 'defender'],
+        [320, 520, 'brick'],
+        [320, 570, 'defender'],
+        [320, 620, 'brick'],
+        [320, 670, 'brick'],
+        [360, 270, 'brick'],
+        [360, 320, 'brick'],
+        [360, 370, 'brick'],
+        [360, 420, 'brick'],
+        [360, 470, 'defender'],
+        [360, 520, 'brick'],
+        [360, 570, 'brick'],
+        [360, 620, 'brick'],
+        [360, 670, 'brick'],
+      ];
+    } else if (formation === 'semifinal') {
+      // Medium: mix of defenders and bricks
+      defenseLayout = [
+        [180, 470, 'gk'],
+        [240, 270, 'brick'],
+        [240, 320, 'defender'],
+        [240, 370, 'brick'],
+        [240, 420, 'defender'],
+        [240, 470, 'brick'],
+        [240, 520, 'defender'],
+        [240, 570, 'brick'],
+        [240, 620, 'defender'],
+        [240, 670, 'brick'],
+        [280, 270, 'brick'],
+        [280, 320, 'brick'],
+        [280, 370, 'defender'],
+        [280, 420, 'brick'],
+        [280, 470, 'defender'],
+        [280, 520, 'brick'],
+        [280, 570, 'defender'],
+        [280, 620, 'brick'],
+        [280, 670, 'brick'],
+        [320, 270, 'referee'],
+        [320, 320, 'brick'],
+        [320, 370, 'defender'],
+        [320, 420, 'brick'],
+        [320, 470, 'defender'],
+        [320, 520, 'brick'],
+        [320, 570, 'defender'],
+        [320, 620, 'brick'],
+        [320, 670, 'brick'],
+        [360, 270, 'brick'],
+        [360, 320, 'brick'],
+        [360, 370, 'brick'],
+        [360, 420, 'brick'],
+        [360, 470, 'brick'],
+        [360, 520, 'brick'],
+        [360, 570, 'brick'],
+        [360, 620, 'brick'],
+        [360, 670, 'brick'],
+      ];
+    } else {
+      // Default to quarterfinals: more bricks, fewer defenders
+      defenseLayout = [
+        [180, 470, 'gk'],
+        [240, 270, 'brick'],
+        [240, 320, 'defender'],
+        [240, 370, 'brick'],
+        [240, 420, 'defender'],
+        [240, 470, 'brick'],
+        [240, 520, 'defender'],
+        [240, 570, 'brick'],
+        [240, 620, 'defender'],
+        [240, 670, 'brick'],
+        [280, 270, 'brick'],
+        [280, 320, 'brick'],
+        [280, 370, 'brick'],
+        [280, 420, 'defender'],
+        [280, 470, 'brick'],
+        [280, 520, 'defender'],
+        [280, 570, 'brick'],
+        [280, 620, 'brick'],
+        [280, 670, 'brick'],
+        [320, 270, 'referee'],
+        [320, 320, 'brick'],
+        [320, 370, 'defender'],
+        [320, 420, 'brick'],
+        [320, 470, 'defender'],
+        [320, 520, 'brick'],
+        [320, 570, 'defender'],
+        [320, 620, 'brick'],
+        [320, 670, 'brick'],
+        [360, 270, 'brick'],
+        [360, 320, 'brick'],
+        [360, 370, 'brick'],
+        [360, 420, 'brick'],
+        [360, 470, 'defender'],
+        [360, 520, 'brick'],
+        [360, 570, 'brick'],
+        [360, 620, 'brick'],
+        [360, 670, 'brick'],
+      ];
+    }
     // Separate goalkeeper from blocks
     const gkBlock = defenseLayout.find(([top, left, type]) => type === 'gk');
     if (gkBlock) {
       goalkeeper.x = gkBlock[1];
       goalkeeper.y = gkBlock[0];
+      goalkeeper.speed = gkSpeed;
     }
     blocks = defenseLayout
       .filter(([top, left, type]) => type !== 'gk')
@@ -602,7 +694,7 @@ $(function () {
         width: BLOCK_WIDTH,
         height: BLOCK_HEIGHT,
         type,
-        hp: 1,
+        hp: type === 'defender' ? defenderHp : 1,
       }));
 
     startTimer(() => {
@@ -622,12 +714,19 @@ $(function () {
     $('#main-elements').hide();
     $('#kickoff-elements').show();
   });
-
-  $('#kickoff-button3').on('click', function () {
+  // Start game with parameters for each stage
+  function startGame(stage, defenderHp, gkSpeed, formation) {
     $('#main').hide();
     $('#ingame').show();
-    quarter_finals();
-  });
+    quarter_finals(defenderHp, gkSpeed, formation);
+  }
+
+  const kickoff1 = document.getElementById('kickoff-button1');
+  const kickoff2 = document.getElementById('kickoff-button2');
+  const kickoff3 = document.getElementById('kickoff-button3');
+  if (kickoff1) kickoff1.addEventListener('click', () => startGame('final', 3, 3, 'final'));
+  if (kickoff2) kickoff2.addEventListener('click', () => startGame('semifinal', 2, 2, 'semifinal'));
+  if (kickoff3) kickoff3.addEventListener('click', () => startGame('quarter', 1, 1, 'quarter'));
 
   // Restore Settings and Ingame button event handlers
   $('#main-button2')
