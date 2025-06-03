@@ -67,14 +67,14 @@ $(function () {
     y: 650, // top: 650px
     width: PLAYER_WIDTH,
     height: PLAYER_HEIGHT,
-    speed: 3
+    speed: 3,
   };
 
   const ball = {
     x: 390 + BALL_RADIUS, // left: 390px + radius
     y: 550 + BALL_RADIUS, // top: 550px + radius
     radius: BALL_RADIUS,
-    speed: 0.001 
+    speed: 0.001,
   };
 
   const goalkeeper = {
@@ -82,7 +82,7 @@ $(function () {
     y: 180, // example, will be set by defenseLayout
     width: GK_WIDTH,
     height: GK_HEIGHT,
-    speed: 3
+    speed: 3,
   };
 
   let blocks = [];
@@ -113,7 +113,9 @@ $(function () {
   }
 
   function updateTimerDisplay() {
-    const min = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const min = Math.floor(timeLeft / 60)
+      .toString()
+      .padStart(2, '0');
     const sec = (timeLeft % 60).toString().padStart(2, '0');
     $('#ingame-ui-timer').text(`${min}:${sec}`);
   }
@@ -133,7 +135,7 @@ $(function () {
     clearInterval(timerInterval);
     updateTimerDisplay();
     timerInterval = setInterval(() => {
-      if(gamePaused) return; //stop when the game paused
+      if (gamePaused) return; //stop when the game paused
 
       if (timeLeft > 0) {
         timeLeft--;
@@ -157,10 +159,12 @@ $(function () {
       const goalWidth = 110;
       const goalHeight = 50;
 
-      if (ball.x + ball.radius > goalX && 
-          ball.x - ball.radius < goalX + goalWidth && 
-          ball.y + ball.radius > goalY && 
-          ball.y - ball.radius < goalY + goalHeight) {
+      if (
+        ball.x + ball.radius > goalX &&
+        ball.x - ball.radius < goalX + goalWidth &&
+        ball.y + ball.radius > goalY &&
+        ball.y - ball.radius < goalY + goalHeight
+      ) {
         updateScore(score + 1000);
         updateMatchScore(matchScore[0] + 1, matchScore[1]);
         ballLaunched = false;
@@ -194,18 +198,20 @@ $(function () {
 
       // Block collisions
       let hit = false;
-      blocks.forEach(block => {
+      blocks.forEach((block) => {
         if (hit && specialMode !== 'power') return;
 
-        if (ball.x + ball.radius > block.x && 
-            ball.x - ball.radius < block.x + block.width && 
-            ball.y + ball.radius > block.y && 
-            ball.y - ball.radius < block.y + block.height) {
+        if (
+          ball.x + ball.radius > block.x &&
+          ball.x - ball.radius < block.x + block.width &&
+          ball.y + ball.radius > block.y &&
+          ball.y - ball.radius < block.y + block.height
+        ) {
           // Calculate overlap distances
-          const overlapLeft = (ball.x + ball.radius) - block.x;
-          const overlapRight = (block.x + block.width) - (ball.x - ball.radius);
-          const overlapTop = (ball.y + ball.radius) - block.y;
-          const overlapBottom = (block.y + block.height) - (ball.y - ball.radius);
+          const overlapLeft = ball.x + ball.radius - block.x;
+          const overlapRight = block.x + block.width - (ball.x - ball.radius);
+          const overlapTop = ball.y + ball.radius - block.y;
+          const overlapBottom = block.y + block.height - (ball.y - ball.radius);
           const minOverlapX = Math.min(overlapLeft, overlapRight);
           const minOverlapY = Math.min(overlapTop, overlapBottom);
 
@@ -240,14 +246,14 @@ $(function () {
               return;
             }
             if (block.type === 'defender') {
-              blocks = blocks.filter(b => b !== block);
+              blocks = blocks.filter((b) => b !== block);
               updateScore(score + 100);
               specialMode = null;
               hit = true;
               return;
             }
             if (block.type === 'brick' || block.type === 'referee') {
-              blocks = blocks.filter(b => b !== block);
+              blocks = blocks.filter((b) => b !== block);
               if (block.type === 'referee') {
                 specialShootCount++;
               }
@@ -261,7 +267,7 @@ $(function () {
             }
             block.hp -= specialMode === 'curve' ? 3 : 1;
             if (block.hp <= 0) {
-              blocks = blocks.filter(b => b !== block);
+              blocks = blocks.filter((b) => b !== block);
               if (block.type === 'referee') {
                 specialShootCount++;
               }
@@ -273,17 +279,18 @@ $(function () {
       });
 
       // Player collision
-      if (ball.x + ball.radius > player.x && 
-          ball.x - ball.radius < player.x + player.width && 
-          ball.y + ball.radius > player.y && 
-          ball.y - ball.radius < player.y + player.height) {
-        
+      if (
+        ball.x + ball.radius > player.x &&
+        ball.x - ball.radius < player.x + player.width &&
+        ball.y + ball.radius > player.y &&
+        ball.y - ball.radius < player.y + player.height
+      ) {
         const relativeIntersectX = ball.x - (player.x + player.width / 2);
         const normalizedRelativeX = relativeIntersectX / (player.width / 2);
         const maxBounceAngle = Math.PI / 3;
         const bounceAngle = normalizedRelativeX * maxBounceAngle;
         const speed = Math.sqrt(ballDirX ** 2 + ballDirY ** 2);
-        
+
         ballDirX = speed * Math.sin(bounceAngle);
         ballDirY = -Math.abs(speed * Math.cos(bounceAngle));
       }
@@ -304,7 +311,7 @@ $(function () {
   // 골키퍼 움직임 추가
   function moveGoalkeeper() {
     goalkeeper.x += gkDirection * gkSpeed;
-    
+
     if (goalkeeper.x < 340) {
       goalkeeper.x = 340;
       gkDirection = 1;
@@ -344,7 +351,7 @@ $(function () {
     }
 
     // Draw blocks (shift x by -100)
-    blocks.forEach(block => {
+    blocks.forEach((block) => {
       let type = block.type;
       if (!images[type]) type = 'brick';
       const img = images[type];
@@ -381,7 +388,13 @@ $(function () {
     // Draw ball (shift x by -100)
     const ballImg = images.ball;
     if (ballImg && ballImg.complete && ballImg.naturalWidth !== 0) {
-      ctx.drawImage(ballImg, ball.x - ball.radius - 100, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
+      ctx.drawImage(
+        ballImg,
+        ball.x - ball.radius - 100,
+        ball.y - ball.radius,
+        ball.radius * 2,
+        ball.radius * 2
+      );
     } else {
       ctx.beginPath();
       ctx.arc(ball.x - 100, ball.y, ball.radius, 0, Math.PI * 2);
@@ -466,7 +479,7 @@ $(function () {
   function quarter_finals() {
     $('#main').hide();
     $('#ingame').show();
-    
+
     timeLeft = 60;
     updateMatchScore(0, 0);
     updateScore(0);
@@ -485,10 +498,42 @@ $(function () {
     ];
     const defenseLayout = [
       [180, 470, 'gk'],
-      [240, 270, 'brick'], [240, 320, 'defender'], [240, 370, 'brick'], [240, 420, 'defender'], [240, 470, 'brick'], [240, 520, 'defender'], [240, 570, 'brick'], [240, 620, 'defender'], [240, 670, 'brick'],
-      [280, 270, 'brick'], [280, 320, 'brick'], [280, 370, 'brick'], [280, 420, 'defender'], [280, 470, 'brick'], [280, 520, 'defender'], [280, 570, 'brick'], [280, 620, 'brick'], [280, 670, 'brick'],
-      [320, 270, 'referee'], [320, 320, 'brick'], [320, 370, 'defender'], [320, 420, 'brick'], [320, 470, 'defender'], [320, 520, 'brick'], [320, 570, 'defender'], [320, 620, 'brick'], [320, 670, 'brick'],
-      [360, 270, 'brick'], [360, 320, 'brick'], [360, 370, 'brick'], [360, 420, 'brick'], [360, 470, 'defender'], [360, 520, 'brick'], [360, 570, 'brick'], [360, 620, 'brick'], [360, 670, 'brick']
+      [240, 270, 'brick'],
+      [240, 320, 'defender'],
+      [240, 370, 'brick'],
+      [240, 420, 'defender'],
+      [240, 470, 'brick'],
+      [240, 520, 'defender'],
+      [240, 570, 'brick'],
+      [240, 620, 'defender'],
+      [240, 670, 'brick'],
+      [280, 270, 'brick'],
+      [280, 320, 'brick'],
+      [280, 370, 'brick'],
+      [280, 420, 'defender'],
+      [280, 470, 'brick'],
+      [280, 520, 'defender'],
+      [280, 570, 'brick'],
+      [280, 620, 'brick'],
+      [280, 670, 'brick'],
+      [320, 270, 'referee'],
+      [320, 320, 'brick'],
+      [320, 370, 'defender'],
+      [320, 420, 'brick'],
+      [320, 470, 'defender'],
+      [320, 520, 'brick'],
+      [320, 570, 'defender'],
+      [320, 620, 'brick'],
+      [320, 670, 'brick'],
+      [360, 270, 'brick'],
+      [360, 320, 'brick'],
+      [360, 370, 'brick'],
+      [360, 420, 'brick'],
+      [360, 470, 'defender'],
+      [360, 520, 'brick'],
+      [360, 570, 'brick'],
+      [360, 620, 'brick'],
+      [360, 670, 'brick'],
     ];
     // Separate goalkeeper from blocks
     const gkBlock = defenseLayout.find(([top, left, type]) => type === 'gk');
@@ -504,7 +549,7 @@ $(function () {
         width: BLOCK_WIDTH,
         height: BLOCK_HEIGHT,
         type,
-        hp: type === 'defender' ? 3 : (type === 'referee' ? 1 : 1)
+        hp: type === 'defender' ? 3 : type === 'referee' ? 1 : 1,
       }));
 
     startTimer(() => {
@@ -532,88 +577,92 @@ $(function () {
   });
 
   // Restore Settings and Ingame button event handlers
-  $('#main-button2').off('click').on('click', function () {
-    playMenuEffect();
-    $('#main-elements').hide();
-    $('#setting-elements').show();
-    $('#setting-bgm-type').text(bgmList[0]);
+  $('#main-button2')
+    .off('click')
+    .on('click', function () {
+      playMenuEffect();
+      $('#main-elements').hide();
+      $('#setting-elements').show();
+      $('#setting-bgm-type').text(bgmList[0]);
 
-    // Sound range
-    $('#setting-sounds')
-      .off('input change')
-      .on('input change', function () {
-        const volume = parseFloat($(this).val());
-        bgmAudio.volume = volume;
-      });
+      // Sound range
+      $('#setting-sounds')
+        .off('input change')
+        .on('input change', function () {
+          const volume = parseFloat($(this).val());
+          bgmAudio.volume = volume;
+        });
 
-    // Mute
-    $('#setting-mute')
-      .off('click')
-      .on('click', function () {
-        playMenuEffect();
-        const isMuted = bgmAudio.muted;
-        if (isMuted) {
-          $(this).css('background-image', "url('assets/soundon.png')");
-          $('#ingame-bgm-button').css('background-image', `url('${bgmOnOffList[0]}')`);
-          bgmAudio.muted = false;
-          $('#setting-sounds').prop('disabled', false);
-        } else {
-          $(this).css('background-image', "url('assets/soundoff.png')");
-          $('#ingame-bgm-button').css('background-image', `url('${bgmOnOffList[1]}')`);
-          bgmAudio.muted = true;
-          $('#setting-sounds').prop('disabled', true);
-        }
-      });
+      // Mute
+      $('#setting-mute')
+        .off('click')
+        .on('click', function () {
+          playMenuEffect();
+          const isMuted = bgmAudio.muted;
+          if (isMuted) {
+            $(this).css('background-image', "url('assets/soundon.png')");
+            $('#ingame-bgm-button').css('background-image', `url('${bgmOnOffList[0]}')`);
+            bgmAudio.muted = false;
+            $('#setting-sounds').prop('disabled', false);
+          } else {
+            $(this).css('background-image', "url('assets/soundoff.png')");
+            $('#ingame-bgm-button').css('background-image', `url('${bgmOnOffList[1]}')`);
+            bgmAudio.muted = true;
+            $('#setting-sounds').prop('disabled', true);
+          }
+        });
 
-    // BGM types
-    $('#left-arrow')
-      .off('click')
-      .on('click', function () {
-        let current_bgm = $('#bgm').attr('src');
-        let bgm_index = bgmList.indexOf(current_bgm);
-        bgm_index = (bgm_index - 1 + bgmList.length) % bgmList.length;
-        $('#bgm').attr('src', bgmList[bgm_index]);
-        $('#bgm')[0].play();
-        $('#setting-bgm-type').text(bgmList[bgm_index]);
-      });
-    $('#right-arrow')
-      .off('click')
-      .on('click', function () {
-        let current_bgm = $('#bgm').attr('src');
-        let bgm_index = bgmList.indexOf(current_bgm);
-        bgm_index = (bgm_index + 1) % bgmList.length;
-        $('#bgm').attr('src', bgmList[bgm_index]);
-        $('#bgm')[0].play();
-        $('#setting-bgm-type').text(bgmList[bgm_index]);
-      });
+      // BGM types
+      $('#left-arrow')
+        .off('click')
+        .on('click', function () {
+          let current_bgm = $('#bgm').attr('src');
+          let bgm_index = bgmList.indexOf(current_bgm);
+          bgm_index = (bgm_index - 1 + bgmList.length) % bgmList.length;
+          $('#bgm').attr('src', bgmList[bgm_index]);
+          $('#bgm')[0].play();
+          $('#setting-bgm-type').text(bgmList[bgm_index]);
+        });
+      $('#right-arrow')
+        .off('click')
+        .on('click', function () {
+          let current_bgm = $('#bgm').attr('src');
+          let bgm_index = bgmList.indexOf(current_bgm);
+          bgm_index = (bgm_index + 1) % bgmList.length;
+          $('#bgm').attr('src', bgmList[bgm_index]);
+          $('#bgm')[0].play();
+          $('#setting-bgm-type').text(bgmList[bgm_index]);
+        });
 
-    // Uniform
-    $('#home-uniform')
-      .off('click')
-      .on('click', function () {
-        playMenuEffect();
-        curr_uniform = uniformList[0];
-        $(this).css('background-color', 'rgba(255, 255, 255, 0.9)');
-        $('#away-uniform').css('background-color', 'rgba(255, 255, 255, 0.5)');
-      });
-    $('#away-uniform')
-      .off('click')
-      .on('click', function () {
-        playMenuEffect();
-        curr_uniform = uniformList[1];
-        $(this).css('background-color', 'rgba(255, 255, 255, 0.9)');
-        $('#home-uniform').css('background-color', 'rgba(255, 255, 255, 0.5)');
-      });
+      // Uniform
+      $('#home-uniform')
+        .off('click')
+        .on('click', function () {
+          playMenuEffect();
+          curr_uniform = uniformList[0];
+          loadImage('player', curr_uniform);
+          $(this).css('background-color', 'rgba(255, 255, 255, 0.9)');
+          $('#away-uniform').css('background-color', 'rgba(255, 255, 255, 0.5)');
+        });
+      $('#away-uniform')
+        .off('click')
+        .on('click', function () {
+          playMenuEffect();
+          curr_uniform = uniformList[1];
+          loadImage('player', curr_uniform);
+          $(this).css('background-color', 'rgba(255, 255, 255, 0.9)');
+          $('#home-uniform').css('background-color', 'rgba(255, 255, 255, 0.5)');
+        });
 
-    // Back button
-    $('#setting-back')
-      .off('click')
-      .on('click', function () {
-        playMenuEffect();
-        $('#main-elements').show();
-        $('#setting-elements').hide();
-      });
-  });
+      // Back button
+      $('#setting-back')
+        .off('click')
+        .on('click', function () {
+          playMenuEffect();
+          $('#main-elements').show();
+          $('#setting-elements').hide();
+        });
+    });
 
   // Ingame button handlers
   $('#ingame-bgm-button')
@@ -622,7 +671,10 @@ $(function () {
       const isMuted = bgmAudio.muted;
       bgmAudio.muted = !isMuted;
       $(this).css('background-image', `url('${!isMuted ? bgmOnOffList[1] : bgmOnOffList[0]}')`);
-      $('#setting-mute').css('background-image', `url('assets/${!isMuted ? 'soundoff.png' : 'soundon.png'}')`);
+      $('#setting-mute').css(
+        'background-image',
+        `url('assets/${!isMuted ? 'soundoff.png' : 'soundon.png'}')`
+      );
       $('#setting-sounds').prop('disabled', !isMuted);
       $(this).blur();
     });
@@ -658,7 +710,31 @@ $(function () {
     });
 
   // Adjust button positions to match original CSS (top-right, etc)
-  $('#ingame-bgm-button').css({ top: '30px', right: '230px', left: '', bottom: '', position: 'absolute', width: '50px', height: '50px' });
-  $('#ingame-reset-button').css({ top: '30px', right: '170px', left: '', bottom: '', position: 'absolute', width: '50px', height: '50px' });
-  $('#ingame-pause-button').css({ top: '30px', right: '110px', left: '', bottom: '', position: 'absolute', width: '50px', height: '50px' });
+  $('#ingame-bgm-button').css({
+    top: '30px',
+    right: '230px',
+    left: '',
+    bottom: '',
+    position: 'absolute',
+    width: '50px',
+    height: '50px',
+  });
+  $('#ingame-reset-button').css({
+    top: '30px',
+    right: '170px',
+    left: '',
+    bottom: '',
+    position: 'absolute',
+    width: '50px',
+    height: '50px',
+  });
+  $('#ingame-pause-button').css({
+    top: '30px',
+    right: '110px',
+    left: '',
+    bottom: '',
+    position: 'absolute',
+    width: '50px',
+    height: '50px',
+  });
 });
