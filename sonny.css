@@ -332,7 +332,11 @@ body {
 #ingame {
   position: relative;
   display: none;
-  padding: 20px 100px 0 100px;
+  width: 800px;
+  height: 800px;
+  margin: 0 auto;
+  padding: 0;
+  background: #000;
 }
 
 #ingame-image {
@@ -344,29 +348,31 @@ body {
 
 #ingame-pause-button {
   position: absolute;
-  width: 50px;
-  height: 50px;
   top: 30px;
   right: 110px;
+  width: 50px;
+  height: 50px;
   background-image: url('assets/Pause.png');
   background-repeat: no-repeat;
   background-size: 110%;
   background-position: center;
   border-radius: 5px;
   border: 0;
+  z-index: 10;
 }
 #ingame-bgm-button {
   position: absolute;
-  width: 50px;
-  height: 50px;
   top: 30px;
   right: 230px;
+  width: 50px;
+  height: 50px;
   background-image: url('assets/SongOn.png');
   background-repeat: no-repeat;
   background-size: 110%;
   background-position: center;
   border-radius: 5px;
   border: 0;
+  z-index: 10;
 }
 
 /*pause 일 때*/
@@ -452,11 +458,11 @@ body {
 /* 좌측 상단 점수 */
 #ingame-ui-score {
   position: absolute;
-  top: 40px;
-  left: 120px;
+  top: 30px;
+  left: 30px;
   color: white;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 28px;
   text-shadow: 1px 1px 2px black;
   z-index: 10;
 }
@@ -464,10 +470,10 @@ body {
 /* 중앙 상단 타이머 / 스코어 */
 #ingame-ui-timer {
   position: absolute;
-  top: 40px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 20px;
+  font-size: 32px;
   font-weight: bold;
   color: white;
   text-shadow: 1px 1px 2px black;
@@ -479,7 +485,7 @@ body {
   top: 70px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 20px;
+  font-size: 28px;
   font-weight: bold;
   color: white;
   text-shadow: 1px 1px 2px black;
@@ -488,16 +494,17 @@ body {
 
 #ingame-reset-button {
   position: absolute;
-  width: 50px;
-  height: 50px;
   top: 30px;
   right: 170px;
+  width: 50px;
+  height: 50px;
   background-image: url('assets/reset.svg');
   background-repeat: no-repeat;
   background-size: 110%;
   background-position: center;
   border-radius: 5px;
   border: 0;
+  z-index: 10;
 }
 
 #player {
@@ -531,4 +538,87 @@ body {
   z-index: 20;
   top: 130px;
   left: 435px;
+}
+
+#gameCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1000px;
+  height: 800px;
+  z-index: 1;
+}
+
+#ingame-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#ingame-ui-score,
+#ingame-ui-timer,
+#ingame-ui-match,
+#ingame-ui-special {
+  position: absolute;
+  color: white;
+  font-family: 'Galmuri', sans-serif;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#ingame-ui-score {
+  top: 20px;
+  left: 20px;
+  font-size: 24px;
+}
+
+#ingame-ui-timer {
+  top: 20px;
+  right: 20px;
+  font-size: 24px;
+}
+
+#ingame-ui-match {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 32px;
+}
+
+#ingame-ui-special {
+  top: 60px;
+  left: 20px;
+  font-size: 18px;
+}
+
+#ingame-bgm-button,
+#ingame-reset-button,
+#ingame-pause-button {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+#ingame-bgm-button {
+  top: 20px;
+  right: 110px;
+}
+
+#ingame-reset-button {
+  top: 20px;
+  right: 70px;
+}
+
+#ingame-pause-button {
+  top: 20px;
+  right: 20px;
 }
