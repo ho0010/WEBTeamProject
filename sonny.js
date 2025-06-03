@@ -549,7 +549,7 @@ $(function () {
         width: BLOCK_WIDTH,
         height: BLOCK_HEIGHT,
         type,
-        hp: type === 'defender' ? 3 : type === 'referee' ? 1 : 1,
+        hp: 1,
       }));
 
     startTimer(() => {
@@ -724,8 +724,8 @@ $(function () {
 
   // Adjust button positions to match original CSS (top-right, etc)
   $('#ingame-bgm-button').css({
-    top: '30px',
-    right: '230px',
+    top: '20px',
+    right: '150px',
     left: '',
     bottom: '',
     position: 'absolute',
@@ -733,8 +733,8 @@ $(function () {
     height: '50px',
   });
   $('#ingame-reset-button').css({
-    top: '30px',
-    right: '170px',
+    top: '20px',
+    right: '90px',
     left: '',
     bottom: '',
     position: 'absolute',
@@ -742,8 +742,8 @@ $(function () {
     height: '50px',
   });
   $('#ingame-pause-button').css({
-    top: '30px',
-    right: '110px',
+    top: '20px',
+    right: '30px',
     left: '',
     bottom: '',
     position: 'absolute',
