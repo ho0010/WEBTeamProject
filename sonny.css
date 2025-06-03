@@ -622,3 +622,17 @@ body {
   top: 20px;
   right: 20px;
 }
+#kickoff-back {
+  position: absolute;
+  top: 50px;
+  left: 120px;
+  width: 60px;
+  height: 60px;
+  background-image: url('assets/back.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+}

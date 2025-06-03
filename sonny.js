@@ -708,6 +708,19 @@ $(function () {
           location.reload();
         });
     });
+  $('#kickoff-back')
+    .off('click')
+    .on('click', function () {
+      playMenuEffect();
+      console.log('뒤로가기 버튼 눌림'); // 이게 콘솔에 찍히는지 확인
+
+      $('#kickoff-elements').hide(); // 킥오프 선택 버튼 숨김
+      $('#main').show(); // 메인 화면 전체 보이기
+      $('#main-elements').show(); // 메인 메뉴 버튼들 보이기
+      $('#ingame').hide(); // 혹시나 열렸을 인게임 화면 숨김
+      $('#ingame-pause').hide(); // 혹시나 열렸을 일시정지 화면 숨김
+      $('#setting-elements').hide(); // 설정창도 닫기
+    });
 
   // Adjust button positions to match original CSS (top-right, etc)
   $('#ingame-bgm-button').css({
