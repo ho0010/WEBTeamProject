@@ -11,6 +11,7 @@ $(function () {
 
   const bgmAudio = $('#bgm')[0];
   const bgmList = ['assets/bgm0.mp3', 'assets/bgm1.mp3']; //bgm 추가하고싶으면 여기 바꾸면 됨
+  const bgmNames = ['BGM 1', 'BGM 2']; // BGM 표시 이름
   const effect = $('#main-effect')[0]; //이펙트용
   const uniformList = ['assets/homeUniform.png', 'assets/awayUniform.png']; //unform 추가하고싶으면 여기 바꾸면 됨
   const pauseList = ['assets/Pause.png', 'assets/Play.png']; //ingame에서 pause버튼 이미지 리스트
@@ -23,12 +24,35 @@ $(function () {
   canvas.width = 1000;
   canvas.height = 800;
 
+  // 마우스 위치 추적
+  let mouseX = 0;
+  let mouseY = 0;
+
+  // 마우스 이동 이벤트 리스너
+  document.addEventListener('mousemove', function(event) {
+    // 전체 문서 기준 마우스 위치
+    mouseX = event.pageX;
+    mouseY = event.pageY;
+    
+    // 캔버스 기준 상대 위치 계산
+    const canvasRect = canvas.getBoundingClientRect();
+    const relativeX = mouseX - canvasRect.left;
+    const relativeY = mouseY - canvasRect.top;
+    
+    // 콘솔에 위치 출력
+    console.clear(); // 이전 로그 지우기
+    console.log('=== 마우스 위치 ===');
+    console.log(`전체 화면 기준: X=${Math.round(mouseX)}, Y=${Math.round(mouseY)}`);
+    console.log(`캔버스 기준: X=${Math.round(relativeX)}, Y=${Math.round(relativeY)}`);
+  });
+
   // Game state
   let score = 0;
   let specialShootCount = 3;
   let ballLaunched = false;
   let ballDirX = 0;
-  let ballDirY = -4;
+  let ballDirY = -6;
+  const BALL_SPEED = 5; // 공의 기본 속도 상수
   let specialMode = null;
   let matchScore = [0, 0];
   let timeLeft = 60;
@@ -130,7 +154,7 @@ $(function () {
     ball.x = player.x + player.width / 2;
     ball.y = player.y - ball.radius - 10;
     ballDirX = 0;
-    ballDirY = -4;
+    ballDirY = -BALL_SPEED;
   }
 
   function startTimer(callback) {
@@ -220,55 +244,64 @@ $(function () {
           ball.isPowerShot = false;
           specialMode = null;
           ballDirX = 0;
-          ballDirY = -4;
+          ballDirY = -BALL_SPEED;
           $('#ingame').removeClass('powershot-active');
         }
       } else {
         if (!ball.isPowerShot) {
           blocks.forEach((block) => {
             if (hit) return;
-            if (
+            
+            // 충돌 감지
+            const isColliding =
               ball.x + ball.radius > block.x &&
               ball.x - ball.radius < block.x + block.width &&
               ball.y + ball.radius > block.y &&
-              ball.y - ball.radius < block.y + block.height
-            ) {
-              // Calculate overlap distances
+              ball.y - ball.radius < block.y + block.height;
+
+            if (isColliding) {
+              // 충돌 방향 계산
               const overlapLeft = ball.x + ball.radius - block.x;
               const overlapRight = block.x + block.width - (ball.x - ball.radius);
               const overlapTop = ball.y + ball.radius - block.y;
               const overlapBottom = block.y + block.height - (ball.y - ball.radius);
+
+              // 가장 작은 겹침 방향으로 반사
               const minOverlapX = Math.min(overlapLeft, overlapRight);
               const minOverlapY = Math.min(overlapTop, overlapBottom);
 
-              // Determine collision side
               if (minOverlapX < minOverlapY) {
-                // Horizontal collision (left or right)
+                // X축 충돌
                 ballDirX *= -1;
-                // Adjust position to prevent sticking
+                // 위치 조정
                 if (overlapLeft < overlapRight) {
                   ball.x = block.x - ball.radius;
                 } else {
                   ball.x = block.x + block.width + ball.radius;
                 }
-              } else if (minOverlapY < minOverlapX) {
-                // Vertical collision (top or bottom)
+              } else {
+                // Y축 충돌
                 ballDirY *= -1;
+                // 위치 조정
                 if (overlapTop < overlapBottom) {
                   ball.y = block.y - ball.radius;
                 } else {
                   ball.y = block.y + block.height + ball.radius;
                 }
-              } else {
-                // True corner: reflect both directions
-                ballDirX *= -1;
-                ballDirY *= -1;
+              }
+
+              // 속도 정규화
+              const currentSpeed = Math.sqrt(ballDirX * ballDirX + ballDirY * ballDirY);
+              if (currentSpeed > 0) {
+                ballDirX = (ballDirX / currentSpeed) * BALL_SPEED;
+                ballDirY = (ballDirY / currentSpeed) * BALL_SPEED;
               }
 
               if (block.type === 'gk') {
                 hit = true;
                 return;
               }
+              
               block.hp -= specialMode === 'curve' ? 3 : 1;
               if (block.hp <= 0) {
                 blocks = blocks.filter((b) => b !== block);
@@ -285,9 +318,9 @@ $(function () {
       }
 
       // Goal collision check
-      const goalX = 480;
+      const goalX = 460;
       const goalY = 130;
-      const goalWidth = 110;
+      const goalWidth = 80;
       const goalHeight = 50;
 
       if (
@@ -301,7 +334,7 @@ $(function () {
           specialMode = null;
           $('#ingame').removeClass('powershot-active');
         }
-        updateScore(score + 1000);
+        updateScore(score + 500);
         updateMatchScore(matchScore[0] + 1, matchScore[1]);
         ballLaunched = false;
         resetBallToPlayer();
@@ -344,25 +377,41 @@ $(function () {
         ball.y + ball.radius > player.y &&
         ball.y - ball.radius < player.y + player.height
       ) {
+        // 플레이어와의 충돌 처리
         const relativeIntersectX = ball.x - (player.x + player.width / 2);
         const normalizedRelativeX = relativeIntersectX / (player.width / 2);
         const maxBounceAngle = Math.PI / 3;
         const bounceAngle = normalizedRelativeX * maxBounceAngle;
-        const speed = Math.sqrt(ballDirX ** 2 + ballDirY ** 2);
 
-        ballDirX = speed * Math.sin(bounceAngle);
-        ballDirY = -Math.abs(speed * Math.cos(bounceAngle));
+        ballDirX = BALL_SPEED * Math.sin(bounceAngle);
+        ballDirY = -Math.abs(BALL_SPEED * Math.cos(bounceAngle));
+
+        // 위치 조정
+        ball.y = player.y - ball.radius;
       }
 
-      // 골키퍼와 충돌 체크 (공 튕기기만)
+      // 골키퍼와 충돌 체크
       if (
         ball.x + ball.radius > goalkeeper.x &&
         ball.x - ball.radius < goalkeeper.x + goalkeeper.width &&
         ball.y + ball.radius > goalkeeper.y &&
         ball.y - ball.radius < goalkeeper.y + goalkeeper.height
       ) {
-        // 단순 상하 반사 (필요시 반사각 적용 가능)
-        ballDirY *= -1;
+        // 골키퍼와의 충돌 처리
+        const relativeIntersectX = ball.x - (goalkeeper.x + goalkeeper.width / 2);
+        const normalizedRelativeX = relativeIntersectX / (goalkeeper.width / 2);
+        const maxBounceAngle = Math.PI / 3;
+        const bounceAngle = normalizedRelativeX * maxBounceAngle;
+
+        ballDirX = BALL_SPEED * Math.sin(bounceAngle);
+        ballDirY = Math.abs(BALL_SPEED * Math.cos(bounceAngle));
+
+        // 위치 조정
+        if (ball.y < goalkeeper.y + goalkeeper.height / 2) {
+          ball.y = goalkeeper.y - ball.radius;
+        } else {
+          ball.y = goalkeeper.y + goalkeeper.height + ball.radius;
+        }
       }
     }
   }
@@ -503,7 +552,7 @@ $(function () {
           specialMode = null;
           ballLaunched = true;
           ballDirX = Math.random() * 3 - 1;
-          ballDirY = -4;
+          ballDirY = -5;
         }
       }
     })
@@ -695,16 +744,84 @@ $(function () {
     });
   }
 
-  // Menu event handlers
+  // Story navigation
+  let currentStory = 1;
+  const totalStories = 6;
+
+  function resetStoryState() {
+    currentStory = 1;
+    $('#story-img').attr('src', 'assets/story1.png');
+    $('#story-backward').addClass('visible');
+    $('#story-forward').addClass('visible');
+  }
+
   $('#main-button1').on('click', function () {
     playMenuEffect();
     $('#main-elements').hide();
-    $('#kickoff-elements').show();
+    $('#main-img').hide();
+    $('#story').show();
+    resetStoryState();
   });
+
+  $('#story-forward').on('click', function() {
+    playMenuEffect();
+    if (currentStory < totalStories) {
+      currentStory++;
+      $('#story-img').attr('src', `assets/story${currentStory}.png`);
+    } else if (currentStory === totalStories) {
+      // 마지막 스토리에서 forward 버튼을 클릭했을 때만 킥오프 화면으로 전환
+      setTimeout(() => {
+        $('#story').hide();
+        $('#main-img').show();
+        $('#kickoff-elements').show();
+      }, 1000);
+    }
+  });
+
+  $('#story-backward').on('click', function() {
+    playMenuEffect();
+    if (currentStory > 1) {
+      currentStory--;
+      $('#story-img').attr('src', `assets/story${currentStory}.png`);
+    } else {
+      // 첫 번째 스토리에서 뒤로가기 버튼을 누르면 메인 화면으로 돌아감
+      $('#story').hide();
+      $('#main-img').show();
+      $('#main-elements').show();
+    }
+  });
+
   // Start game with parameters for each stage
   function startGame(stage, defenderHp, gkSpeed, formation) {
+    // 게임 상태 초기화
+    gamePaused = false;
+    score = 0;
+    specialShootCount = 3;
+    ballLaunched = false;
+    ballDirX = 0;
+    ballDirY = -6;
+    specialMode = null;
+    matchScore = [0, 0];
+    timeLeft = 60;
+    
+    // 타이머 초기화
+    clearInterval(timerInterval);
+    
+    // UI 업데이트
+    updateScore(0);
+    updateMatchScore(0, 0);
+    updateSpecialCount(3);
+    updateTimerDisplay();
+
+    // 화면 전환
     $('#main').hide();
     $('#ingame').show();
+    $('#result-screen').hide();
+    
+    // 스테이지 정보 저장
+    localStorage.setItem('selectedStage', stage);
+    
+    // 게임 시작
     quarter_finals(defenderHp, gkSpeed, formation);
   }
 
@@ -722,7 +839,7 @@ $(function () {
       playMenuEffect();
       $('#main-elements').hide();
       $('#setting-elements').show();
-      $('#setting-bgm-type').text(bgmList[0]);
+      $('#setting-bgm-type').text(bgmNames[0]);
 
       // Sound range
       $('#setting-sounds')
@@ -760,7 +877,7 @@ $(function () {
           bgm_index = (bgm_index - 1 + bgmList.length) % bgmList.length;
           $('#bgm').attr('src', bgmList[bgm_index]);
           $('#bgm')[0].play();
-          $('#setting-bgm-type').text(bgmList[bgm_index]);
+          $('#setting-bgm-type').text(bgmNames[bgm_index]);
         });
       $('#right-arrow')
         .off('click')
@@ -770,7 +887,7 @@ $(function () {
           bgm_index = (bgm_index + 1) % bgmList.length;
           $('#bgm').attr('src', bgmList[bgm_index]);
           $('#bgm')[0].play();
-          $('#setting-bgm-type').text(bgmList[bgm_index]);
+          $('#setting-bgm-type').text(bgmNames[bgm_index]);
         });
 
       // Uniform
@@ -849,16 +966,15 @@ $(function () {
     });
   $('#kickoff-back')
     .off('click')
-    .on('click', function () {
+    .on('click', function() {
       playMenuEffect();
-      console.log('뒤로가기 버튼 눌림'); // 이게 콘솔에 찍히는지 확인
-
-      $('#kickoff-elements').hide(); // 킥오프 선택 버튼 숨김
-      $('#main').show(); // 메인 화면 전체 보이기
-      $('#main-elements').show(); // 메인 메뉴 버튼들 보이기
-      $('#ingame').hide(); // 혹시나 열렸을 인게임 화면 숨김
-      $('#ingame-pause').hide(); // 혹시나 열렸을 일시정지 화면 숨김
-      $('#setting-elements').hide(); // 설정창도 닫기
+      $('#kickoff-elements').hide();
+      $('#main').show();
+      $('#main-elements').show();
+      $('#ingame').hide();
+      $('#ingame-pause').hide();
+      $('#setting-elements').hide();
+      resetStoryState();  // 스토리 상태 초기화
     });
 
   // Adjust button positions to match original CSS (top-right, etc)
@@ -891,32 +1007,109 @@ $(function () {
   });
   // Show the result screen, hiding all other game/menu elements
   function showResultScreen(won) {
-    // Placeholder stat values to avoid runtime errors; adjust based on actual gameplay logic if needed
     const [me, enemy] = matchScore;
     const goalCount = matchScore[0];
-    // Immediately halt gameplay logic before showing results
     gamePaused = true;
     running = false;
+
+    const currentStage = localStorage.getItem('selectedStage');
+    console.log('Current stage:', currentStage);
+    console.log('Game won:', won);
 
     $('#main').hide();
     $('#ingame').hide();
     $('#ingame-pause').hide();
+    $('#result-screen').hide();
 
-    $('#result-title').text(won ? '승리' : '패배');
-    $('#result-score').text(score.toString().padStart(6, '0'));
+    // Final stage에서 이긴 경우 ending.png 표시
+    if (currentStage === 'final' && won) {
+      console.log('Showing ending screen');
+      // ending.png를 보여주는 임시 div 생성
+      const endingDiv = $('<div>').css({
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 1000,
+        background: 'black',
+        opacity: 0,
+        transition: 'opacity 5s ease-in-out'
+      });
 
-    $('#match-result').html(`경기결과<br />한국 ${me} : ${enemy} 상대팀`);
-    $('#match-detail').html(`경기 내용<br />
-    골 ${goalCount}회 ${goalCount * 100}점<br />
-    실점 ${enemy}회 ${enemy * -50}점`);
+      const endingImg = $('<img>').attr({
+        src: 'assets/ending.png',
+        style: 'width: 100%; height: 100%; object-fit: contain;'
+      });
 
-    $('#result-screen').css('display', 'flex');
-    if (won) {
-      $('#next-game-btn').show();
-      $('#select-stage-btn').hide();
+      endingDiv.append(endingImg);
+      $('body').append(endingDiv);
+
+      // 페이드 인
+      setTimeout(() => {
+        endingDiv.css('opacity', 1);
+      }, 100);
+
+      // 10초 후 페이드 아웃
+      setTimeout(() => {
+        endingDiv.css('opacity', 0);
+        
+        // 5초 후 메인 화면으로 전환
+        setTimeout(() => {
+          endingDiv.remove();
+          location.reload();
+        }, 5000);
+      }, 10000);
     } else {
-      $('#next-game-btn').hide();
-      $('#select-stage-btn').show();
+      console.log('Showing normal result screen');
+      // 일반 결과 화면 표시
+      $('#result-title').text(won ? '승리' : '패배');
+      $('#result-score').text(score.toString().padStart(6, '0'));
+      $('#match-result').html(`경기결과<br />한국 ${me} : ${enemy} 상대팀`);
+      $('#match-detail').html(`경기 내용<br />
+        골 ${goalCount}회 ${goalCount * 100}점<br />
+        실점 ${enemy}회 ${enemy * -50}점`);
+
+      $('#result-screen').css('display', 'flex');
+      if (won) {
+        $('#next-game-btn').show();
+        $('#select-stage-btn').hide();
+        
+        // 다음 경기로 버튼 클릭 이벤트
+        $('#next-game-btn').off('click').on('click', function() {
+          let nextStage;
+          if (currentStage === 'quarter') {
+            nextStage = 'semifinal';
+          } else if (currentStage === 'semifinal') {
+            nextStage = 'final';
+          }
+          
+          if (nextStage) {
+            // 결과 화면 숨기기
+            $('#result-screen').hide();
+            
+            // 다음 스테이지로 진행
+            if (nextStage === 'semifinal') {
+              startGame('semifinal', 2, 2, 'semifinal');
+            } else if (nextStage === 'final') {
+              startGame('final', 3, 3, 'final');
+            }
+          }
+        });
+      } else {
+        $('#next-game-btn').hide();
+        $('#select-stage-btn').show();
+      }
     }
   }
+
+  // 초기 BGM 이름 설정
+  let initial_bgm = $('#bgm').attr('src');
+  let initial_index = bgmList.indexOf(initial_bgm);
+  $('#setting-bgm-type').text(bgmNames[initial_index]);
+
+  $('#main-button3').on('click', function () {
+    playMenuEffect();
+    window.close();
+  });
 });

@@ -34,7 +34,14 @@ body {
   position: relative;
 }
 
-#main-video {
+/* #main-video {
+  width: 800px;
+  height: 800px;
+  padding: 0 100px;
+  z-index: 0;
+} */
+
+#main-img{
   width: 800px;
   height: 800px;
   padding: 0 100px;
@@ -45,19 +52,19 @@ body {
   display: none;
 }
 
-#main-title {
+/* #main-title {
   position: absolute;
   top: 200px;
   left: 50%;
   transform: translateX(-50%); /*본인 너비의 절반만큼 다시 왼쪽으로 이동*/
-  z-index: 10;
+  /* z-index: 10;
   font-size: 50px;
   color: darkbrown;
 
   background-color: rgba(255, 255, 255, 0.5); /*흐림도 설정*/
 
-  border-radius: 15px;
-}
+  /* border-radius: 15px;
+} */ 
 
 /*main-button*/
 #main-button1 {
@@ -101,6 +108,57 @@ body {
   background-position: center;
   border-radius: 15px;
 }
+/* story */
+#story {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  padding: 0 100px;
+  z-index: 0;
+  display: none;
+}
+
+#story-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.story-nav-btn {
+  position: absolute;
+  bottom: 50px;
+  width: 60px;
+  height: 60px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  display: none;
+}
+
+#story-backward {
+  left: 180px;
+  bottom: 60px;
+  
+  background-image: url('assets/backward.png');
+  background-size:120%;
+  border-radius: 15px;
+}
+
+#story-forward {
+  right: 180px;
+  background-image: url('assets/foward.png');
+  background-size:120%;
+  border-radius: 15px;
+  bottom: 60px;
+}
+
+/* 버튼이 보여야 할 때 사용할 클래스 */
+.story-nav-btn.visible {
+  display: block;
+}
 
 /***********Kickoff*************/
 #kickoff-elements {
@@ -112,14 +170,16 @@ body {
   position: absolute;
   top: 50px;
   left: 120px;
-  width: 50px;
-  height: 50px;
-  border: 0;
-  border-radius: 15px;
+  width: 60px;
+  height: 60px;
   background-image: url('assets/back.png');
-  background-size: 130%;
-  background-position: center;
+  background-size: 120%;
   background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+  border-radius: 15px;
+  z-index: 1000;
 }
 #kickoff-button1 {
   position: absolute;
@@ -354,7 +414,7 @@ body {
   height: 50px;
   background-image: url('assets/Pause.png');
   background-repeat: no-repeat;
-  background-size: 110%;
+  background-size: 120%;
   background-position: center;
   border-radius: 5px;
   border: 0;
@@ -368,7 +428,7 @@ body {
   height: 50px;
   background-image: url('assets/SongOn.png');
   background-repeat: no-repeat;
-  background-size: 110%;
+  background-size: 120%;
   background-position: center;
   border-radius: 5px;
   border: 0;
@@ -379,7 +439,7 @@ body {
 #ingame-pause {
   position: relative;
   display: none;
-  padding: 20px 100px 0 100px;
+  padding: 0 100px;
 }
 
 #continue {
@@ -598,43 +658,33 @@ body {
 #ingame-reset-button,
 #ingame-pause-button {
   position: absolute;
-  width: 40px;
-  height: 40px;
-  background-size: contain;
+  width: 50px;
+  height: 50px;
+  background-size: 120%;
   background-repeat: no-repeat;
   background-position: center;
   border: none;
   cursor: pointer;
   pointer-events: auto;
+  z-index: 10;
 }
 
 #ingame-bgm-button {
-  top: 20px;
-  right: 110px;
+  top: 30px;
+  right: 230px;
+  background-image: url('assets/SongOn.png');
 }
 
 #ingame-reset-button {
-  top: 20px;
-  right: 70px;
+  top: 30px;
+  right: 170px;
+  background-image: url('assets/reset.svg');
 }
 
 #ingame-pause-button {
-  top: 20px;
-  right: 20px;
-}
-#kickoff-back {
-  position: absolute;
-  top: 50px;
-  left: 120px;
-  width: 60px;
-  height: 60px;
-  background-image: url('assets/back.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  border: none;
-  cursor: pointer;
-  z-index: 1000;
+  top: 30px;
+  right: 110px;
+  background-image: url('assets/Pause.png');
 }
 
 @keyframes powerShotGlow {
@@ -712,4 +762,56 @@ body {
 #match-detail {
   font-size: 18px;
   line-height: 1.6;
+}
+
+#ending-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: black;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 3s ease-in-out, visibility 3s ease-in-out;
+}
+
+#ending-screen.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+#ending-screen.hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#ending-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 3s ease-in-out;
+}
+
+#ending-screen.show #ending-img {
+  opacity: 1;
+}
+
+#ending-screen.hide #ending-img {
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
