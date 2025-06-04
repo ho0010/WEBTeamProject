@@ -15,6 +15,16 @@ $(function () {
   const bgmNames = ['BGM 1', 'BGM 2']; // BGM 표시 이름
   const effect = $('#main-effect')[0]; //이펙트용
   const uniformList = ['assets/homeUniform.png', 'assets/awayUniform.png']; //unform 추가하고싶으면 여기 바꾸면 됨
+  const opponentUniforms = {
+    'quarter': 'assets/characterBlue3.png',
+    'semifinal': 'assets/characterWhite4.png',
+    'final': 'assets/characterGreen2.png'
+  };
+  const goalkeeperUniforms = {
+    'quarter': 'assets/characterBlue3.png',
+    'semifinal': 'assets/characterWhite4.png',
+    'final': 'assets/characterGreen2.png'
+  };
   const pauseList = ['assets/Pause.png', 'assets/Play.png']; //ingame에서 pause버튼 이미지 리스트
   const bgmOnOffList = ['assets/SongOn.png', 'assets/SongOff.png']; //ingame에서 bgm on off button list
   let curr_uniform = 'assets/homeUniform.png'; //현재 유니폼
@@ -55,7 +65,7 @@ $(function () {
   let ballLaunched = false;
   let ballDirX = 0;
   let ballDirY = -6;
-  const BALL_SPEED = 5; // 공의 기본 속도 상수
+  const BALL_SPEED = 4; // 공의 기본 속도 상수
   let specialMode = null;
   let matchScore = [0, 0];
   let timeLeft = 60;
@@ -130,6 +140,14 @@ $(function () {
   loadImage('defender', 'assets/defender.svg');
   loadImage('referee', 'assets/referee.svg');
   loadImage('background', 'assets/background.png');
+  // 상대방 유니폼 이미지 로드
+  loadImage('opponent_quarter', opponentUniforms['quarter']);
+  loadImage('opponent_semifinal', opponentUniforms['semifinal']);
+  loadImage('opponent_final', opponentUniforms['final']);
+  // 골키퍼 유니폼 이미지 로드
+  loadImage('goalkeeper_quarter', goalkeeperUniforms['quarter']);
+  loadImage('goalkeeper_semifinal', goalkeeperUniforms['semifinal']);
+  loadImage('goalkeeper_final', goalkeeperUniforms['final']);
 
   function updateScore(value) {
     score = value;
@@ -285,31 +303,53 @@ $(function () {
               const minOverlapX = Math.min(overlapLeft, overlapRight);
               const minOverlapY = Math.min(overlapTop, overlapBottom);
 
+              // 충돌 전 공의 위치 저장
+              const prevX = ball.x;
+              const prevY = ball.y;
+
               if (minOverlapX < minOverlapY) {
                 // X축 충돌
-                ballDirX *= -1;
                 // 위치 조정
                 if (overlapLeft < overlapRight) {
                   ball.x = block.x - ball.radius;
                 } else {
                   ball.x = block.x + block.width + ball.radius;
                 }
+                
+                // X축 속도 반전
+                ballDirX *= -1;
+                
+                // Y축 속도는 유지하되 약간 감소
+                ballDirY *= 0.95;
               } else {
                 // Y축 충돌
-                ballDirY *= -1;
                 // 위치 조정
                 if (overlapTop < overlapBottom) {
                   ball.y = block.y - ball.radius;
                 } else {
                   ball.y = block.y + block.height + ball.radius;
                 }
+                
+                // Y축 속도 반전
+                ballDirY *= -1;
+                
+                // X축 속도는 유지하되 약간 감소
+                ballDirX *= 0.95;
               }
 
               // 속도 정규화
               const currentSpeed = Math.sqrt(ballDirX * ballDirX + ballDirY * ballDirY);
               if (currentSpeed > 0) {
-                ballDirX = (ballDirX / currentSpeed) * BALL_SPEED;
-                ballDirY = (ballDirY / currentSpeed) * BALL_SPEED;
+                const minSpeed = BALL_SPEED * 0.8; // 최소 속도 설정
+                const targetSpeed = Math.max(currentSpeed, minSpeed);
+                ballDirX = (ballDirX / currentSpeed) * targetSpeed;
+                ballDirY = (ballDirY / currentSpeed) * targetSpeed;
+              }
+
+              // 연속 충돌 방지
+              if (Math.abs(ball.x - prevX) < 0.1 && Math.abs(ball.y - prevY) < 0.1) {
+                ball.x = prevX;
+                ball.y = prevY;
               }
 
               if (block.type === 'gk') {
@@ -467,7 +507,7 @@ $(function () {
     // Boundary checks
     if (player.x < 250) player.x = 250;
     if (player.x > 740) player.x = 740;
-    if (player.y < 510) player.y = 510;
+    if (player.y < 450) player.y = 450;
     if (player.y > 690) player.y = 690;
 
     if (!ballLaunched) {
@@ -491,6 +531,11 @@ $(function () {
     // Draw blocks (shift x by -100)
     blocks.forEach((block) => {
       let type = block.type;
+      if (type === 'defender') {
+        // 스테이지에 따라 다른 상대방 유니폼 사용
+        const currentStage = localStorage.getItem('selectedStage') || 'quarter';
+        type = `opponent_${currentStage}`;
+      }
       if (!images[type]) type = 'brick';
       const img = images[type];
       if (img && img.complete && img.naturalWidth !== 0) {
@@ -506,7 +551,8 @@ $(function () {
     });
 
     // Draw goalkeeper (shift x by -100)
-    const gkImg = images.goalkeeper;
+    const currentStage = localStorage.getItem('selectedStage') || 'quarter';
+    const gkImg = images[`goalkeeper_${currentStage}`];
     if (gkImg && gkImg.complete && gkImg.naturalWidth !== 0) {
       ctx.drawImage(gkImg, goalkeeper.x - 100, goalkeeper.y, goalkeeper.width, goalkeeper.height);
     } else {
@@ -613,7 +659,7 @@ $(function () {
     $('#main').hide();
     $('#ingame').show();
 
-    timeLeft = 10;
+    timeLeft = 60;
     updateMatchScore(0, 0);
     updateScore(0);
     updateSpecialCount(3);
@@ -981,7 +1027,17 @@ $(function () {
   $('#ingame-reset-button')
     .off('click')
     .on('click', function () {
-      location.reload();
+      const currentStage = localStorage.getItem('selectedStage') || 'quarter';
+      $('#ingame').hide();
+      
+      // 현재 스테이지에 맞는 설정으로 게임 재시작
+      if (currentStage === 'final') {
+        startGame('final', 3, 3, 'final');
+      } else if (currentStage === 'semifinal') {
+        startGame('semifinal', 2, 2, 'semifinal');
+      } else {
+        startGame('quarter', 1, 1, 'quarter');
+      }
     });
   $('#ingame-pause-button')
     .off('click')
@@ -1060,6 +1116,7 @@ $(function () {
     console.log('Current stage:', currentStage);
     console.log('Game won:', won);
 
+    // 모든 화면 숨기기
     $('#main').hide();
     $('#ingame').hide();
     $('#ingame-pause').hide();
@@ -1107,7 +1164,14 @@ $(function () {
     } else {
       console.log('Showing normal result screen');
       // 일반 결과 화면 표시
-      $('#result-title').text(won ? '승리' : '패배');
+      if (me > enemy) {
+        $('#result-title').text('승리');
+      } else if (me < enemy) {
+        $('#result-title').text('패배');
+      } else {
+        $('#result-title').text('무승부');
+      }
+      
       $('#result-score').text(score.toString().padStart(6, '0'));
       $('#match-result').html(`경기결과<br />한국 ${me} : ${enemy} 상대팀`);
       $('#match-detail').html(`경기 내용<br />
@@ -1116,38 +1180,67 @@ $(function () {
         어시스트 ${assistCount}회 ${assistCount * 100}점<br />
         실점 ${enemy}회 ${enemy * -300}점`);
 
+      // 결과 화면 표시
       $('#result-screen').css('display', 'flex');
-      if (won) {
+
+      // 버튼 표시 로직 - 무승부 포함
+      if (me > enemy) {
         $('#next-game-btn').show();
         $('#select-stage-btn').hide();
-
-        // 다음 경기로 버튼 클릭 이벤트
-        $('#next-game-btn')
-          .off('click')
-          .on('click', function () {
-            let nextStage;
-            if (currentStage === 'quarter') {
-              nextStage = 'semifinal';
-            } else if (currentStage === 'semifinal') {
-              nextStage = 'final';
-            }
-
-            if (nextStage) {
-              // 결과 화면 숨기기
-              $('#result-screen').hide();
-
-              // 다음 스테이지로 진행
-              if (nextStage === 'semifinal') {
-                startGame('semifinal', 2, 2, 'semifinal');
-              } else if (nextStage === 'final') {
-                startGame('final', 3, 3, 'final');
-              }
-            }
-          });
       } else {
         $('#next-game-btn').hide();
         $('#select-stage-btn').show();
       }
+
+      // 다시하기 버튼은 항상 표시
+      $('#retry-btn').show();
+
+      // 다시하기 버튼 클릭 이벤트
+      $('#retry-btn').off('click').on('click', function() {
+        const currentStage = localStorage.getItem('selectedStage');
+        $('#result-screen').hide();
+        
+        // 현재 스테이지에 맞는 설정으로 게임 재시작
+        if (currentStage === 'final') {
+          startGame('final', 3, 3, 'final');
+        } else if (currentStage === 'semifinal') {
+          startGame('semifinal', 2, 2, 'semifinal');
+        } else {
+          startGame('quarter', 1, 1, 'quarter');
+        }
+      });
+
+      // 다음 경기로 버튼 클릭 이벤트
+      $('#next-game-btn').off('click').on('click', function() {
+        const currentStage = localStorage.getItem('selectedStage');
+        let nextStage;
+        
+        if (currentStage === 'quarter') {
+          nextStage = 'semifinal';
+        } else if (currentStage === 'semifinal') {
+          nextStage = 'final';
+        }
+
+        if (nextStage) {
+          // 결과 화면 숨기기
+          $('#result-screen').hide();
+          
+          // 다음 스테이지로 진행
+          if (nextStage === 'semifinal') {
+            startGame('semifinal', 2, 2, 'semifinal');
+          } else if (nextStage === 'final') {
+            startGame('final', 3, 3, 'final');
+          }
+        }
+      });
+
+      // 경기선택 버튼 클릭 이벤트
+      $('#select-stage-btn').off('click').on('click', function() {
+        $('#result-screen').hide();
+        $('#main').show();
+        $('#main-elements').show();
+        $('#kickoff-elements').show();
+      });
     }
   }
 
