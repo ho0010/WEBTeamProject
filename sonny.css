@@ -41,7 +41,7 @@ body {
   z-index: 0;
 } */
 
-#main-img{
+#main-img {
   width: 800px;
   height: 800px;
   padding: 0 100px;
@@ -57,14 +57,14 @@ body {
   top: 200px;
   left: 50%;
   transform: translateX(-50%); /*본인 너비의 절반만큼 다시 왼쪽으로 이동*/
-  /* z-index: 10;
+/* z-index: 10;
   font-size: 50px;
   color: darkbrown;
 
   background-color: rgba(255, 255, 255, 0.5); /*흐림도 설정*/
 
-  /* border-radius: 15px;
-} */ 
+/* border-radius: 15px;
+} */
 
 /*main-button*/
 #main-button1 {
@@ -141,18 +141,26 @@ body {
 #story-backward {
   left: 180px;
   bottom: 60px;
-  
+
   background-image: url('assets/backward.png');
-  background-size:120%;
+  background-size: 120%;
   border-radius: 15px;
 }
 
 #story-forward {
   right: 180px;
   background-image: url('assets/foward.png');
-  background-size:120%;
+  background-size: 120%;
   border-radius: 15px;
   bottom: 60px;
+}
+
+#story-skip {
+  right: 180px;
+  background-image: url('assets/skipImg.png');
+  background-size: 140%;
+  border-radius: 15px;
+  bottom: 130px;
 }
 
 /* 버튼이 보여야 할 때 사용할 클래스 */
@@ -807,11 +815,19 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }

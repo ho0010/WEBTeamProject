@@ -786,7 +786,17 @@ $(function () {
     $('#story-img').attr('src', 'assets/story1.png');
     $('#story-backward').addClass('visible');
     $('#story-forward').addClass('visible');
+    $('#story-skip').addClass('visible');
   }
+  // Skip 버튼 클릭 시 바로 킥오프 화면으로 전환
+  $('#story-skip')
+    .off('click')
+    .on('click', function () {
+      playMenuEffect();
+      $('#story').hide();
+      $('#main-img').show();
+      $('#kickoff-elements').show();
+    });
 
   $('#main-button1').on('click', function () {
     playMenuEffect();
