@@ -7,6 +7,7 @@
 //ingame 사운드와 main-menu 사운드를 분리해서 서로 다른 사운드로 하는것도 나쁘지 않을듯?
 
 $(function () {
+  let countedBlocks = new Set();
   let gamePaused = false;
 
   const bgmAudio = $('#bgm')[0];
@@ -29,16 +30,16 @@ $(function () {
   let mouseY = 0;
 
   // 마우스 이동 이벤트 리스너
-  document.addEventListener('mousemove', function(event) {
+  document.addEventListener('mousemove', function (event) {
     // 전체 문서 기준 마우스 위치
     mouseX = event.pageX;
     mouseY = event.pageY;
-    
+
     // 캔버스 기준 상대 위치 계산
     const canvasRect = canvas.getBoundingClientRect();
     const relativeX = mouseX - canvasRect.left;
     const relativeY = mouseY - canvasRect.top;
-    
+
     // 콘솔에 위치 출력
     console.clear(); // 이전 로그 지우기
     console.log('=== 마우스 위치 ===');
@@ -49,6 +50,8 @@ $(function () {
   // Game state
   let score = 0;
   let specialShootCount = 3;
+  let passCount = 0;
+  let assistCount = 0;
   let ballLaunched = false;
   let ballDirX = 0;
   let ballDirY = -6;
@@ -231,10 +234,22 @@ $(function () {
         // If we found a block to destroy
         if (closestBlock) {
           destroyed++;
-          updateScore(score + (closestBlock.type === 'defender' ? 100 : 50));
-          if (closestBlock.type === 'referee') {
-            specialShootCount++;
-            updateSpecialCount(specialShootCount);
+          const blockKey = `${closestBlock.x}-${closestBlock.y}-${closestBlock.type}`;
+          if (!countedBlocks.has(blockKey)) {
+            if (closestBlock.type === 'referee') {
+              specialShootCount++;
+              updateSpecialCount(specialShootCount);
+            }
+            if (closestBlock.type === 'brick') {
+              passCount++;
+              updateScore(score + 50);
+            } else if (closestBlock.type === 'defender') {
+              assistCount++;
+              updateScore(score + 100);
+            } else {
+              updateScore(score + 50);
+            }
+            countedBlocks.add(blockKey);
           }
         }
 
@@ -251,7 +266,7 @@ $(function () {
         if (!ball.isPowerShot) {
           blocks.forEach((block) => {
             if (hit) return;
-            
+
             // 충돌 감지
             const isColliding =
               ball.x + ball.radius > block.x &&
@@ -301,15 +316,30 @@ $(function () {
                 hit = true;
                 return;
               }
-              
+
               block.hp -= specialMode === 'curve' ? 3 : 1;
               if (block.hp <= 0) {
                 blocks = blocks.filter((b) => b !== block);
-                if (block.type === 'referee') {
-                  specialShootCount++;
-                  updateSpecialCount(specialShootCount);
+                // Avoid duplicate counting per block
+                const blockKey = `${block.x}-${block.y}-${block.type}`;
+                if (!countedBlocks.has(blockKey)) {
+                  if (block.type === 'referee') {
+                    specialShootCount++;
+                    updateSpecialCount(specialShootCount);
+                  }
+                  if (block.type === 'brick') {
+                    passCount++;
+                    console.log(passCount);
+                    updateScore(score + 50);
+                  }
+                  if (block.type === 'defender') {
+                    assistCount++;
+                    console.log(assistCount);
+
+                    updateScore(score + 100);
+                  }
+                  countedBlocks.add(blockKey);
                 }
-                updateScore(score + (block.type === 'defender' ? 100 : 50));
               }
               hit = true;
             }
@@ -583,10 +613,13 @@ $(function () {
     $('#main').hide();
     $('#ingame').show();
 
-    timeLeft = 60;
+    timeLeft = 10;
     updateMatchScore(0, 0);
     updateScore(0);
     updateSpecialCount(3);
+    passCount = 0;
+    assistCount = 0;
+    countedBlocks.clear();
 
     // Initialize game objects
     player.x = 500;
@@ -763,7 +796,7 @@ $(function () {
     resetStoryState();
   });
 
-  $('#story-forward').on('click', function() {
+  $('#story-forward').on('click', function () {
     playMenuEffect();
     if (currentStory < totalStories) {
       currentStory++;
@@ -778,7 +811,7 @@ $(function () {
     }
   });
 
-  $('#story-backward').on('click', function() {
+  $('#story-backward').on('click', function () {
     playMenuEffect();
     if (currentStory > 1) {
       currentStory--;
@@ -803,10 +836,11 @@ $(function () {
     specialMode = null;
     matchScore = [0, 0];
     timeLeft = 60;
-    
+
     // 타이머 초기화
     clearInterval(timerInterval);
-    
+    countedBlocks.clear();
+
     // UI 업데이트
     updateScore(0);
     updateMatchScore(0, 0);
@@ -817,10 +851,10 @@ $(function () {
     $('#main').hide();
     $('#ingame').show();
     $('#result-screen').hide();
-    
+
     // 스테이지 정보 저장
     localStorage.setItem('selectedStage', stage);
-    
+
     // 게임 시작
     quarter_finals(defenderHp, gkSpeed, formation);
   }
@@ -966,7 +1000,7 @@ $(function () {
     });
   $('#kickoff-back')
     .off('click')
-    .on('click', function() {
+    .on('click', function () {
       playMenuEffect();
       $('#kickoff-elements').hide();
       $('#main').show();
@@ -974,7 +1008,7 @@ $(function () {
       $('#ingame').hide();
       $('#ingame-pause').hide();
       $('#setting-elements').hide();
-      resetStoryState();  // 스토리 상태 초기화
+      resetStoryState(); // 스토리 상태 초기화
     });
 
   // Adjust button positions to match original CSS (top-right, etc)
@@ -1034,12 +1068,12 @@ $(function () {
         zIndex: 1000,
         background: 'black',
         opacity: 0,
-        transition: 'opacity 5s ease-in-out'
+        transition: 'opacity 5s ease-in-out',
       });
 
       const endingImg = $('<img>').attr({
         src: 'assets/ending.png',
-        style: 'width: 100%; height: 100%; object-fit: contain;'
+        style: 'width: 100%; height: 100%; object-fit: contain;',
       });
 
       endingDiv.append(endingImg);
@@ -1053,7 +1087,7 @@ $(function () {
       // 10초 후 페이드 아웃
       setTimeout(() => {
         endingDiv.css('opacity', 0);
-        
+
         // 5초 후 메인 화면으로 전환
         setTimeout(() => {
           endingDiv.remove();
@@ -1067,35 +1101,39 @@ $(function () {
       $('#result-score').text(score.toString().padStart(6, '0'));
       $('#match-result').html(`경기결과<br />한국 ${me} : ${enemy} 상대팀`);
       $('#match-detail').html(`경기 내용<br />
-        골 ${goalCount}회 ${goalCount * 100}점<br />
-        실점 ${enemy}회 ${enemy * -50}점`);
+        골 ${goalCount}회 ${goalCount * 500}점<br />
+        패스 ${passCount}회 ${passCount * 50}점<br />
+        어시스트 ${assistCount}회 ${assistCount * 100}점<br />
+        실점 ${enemy}회 ${enemy * -300}점`);
 
       $('#result-screen').css('display', 'flex');
       if (won) {
         $('#next-game-btn').show();
         $('#select-stage-btn').hide();
-        
+
         // 다음 경기로 버튼 클릭 이벤트
-        $('#next-game-btn').off('click').on('click', function() {
-          let nextStage;
-          if (currentStage === 'quarter') {
-            nextStage = 'semifinal';
-          } else if (currentStage === 'semifinal') {
-            nextStage = 'final';
-          }
-          
-          if (nextStage) {
-            // 결과 화면 숨기기
-            $('#result-screen').hide();
-            
-            // 다음 스테이지로 진행
-            if (nextStage === 'semifinal') {
-              startGame('semifinal', 2, 2, 'semifinal');
-            } else if (nextStage === 'final') {
-              startGame('final', 3, 3, 'final');
+        $('#next-game-btn')
+          .off('click')
+          .on('click', function () {
+            let nextStage;
+            if (currentStage === 'quarter') {
+              nextStage = 'semifinal';
+            } else if (currentStage === 'semifinal') {
+              nextStage = 'final';
             }
-          }
-        });
+
+            if (nextStage) {
+              // 결과 화면 숨기기
+              $('#result-screen').hide();
+
+              // 다음 스테이지로 진행
+              if (nextStage === 'semifinal') {
+                startGame('semifinal', 2, 2, 'semifinal');
+              } else if (nextStage === 'final') {
+                startGame('final', 3, 3, 'final');
+              }
+            }
+          });
       } else {
         $('#next-game-btn').hide();
         $('#select-stage-btn').show();
