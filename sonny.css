@@ -1,7 +1,7 @@
 @font-face {
-  font-family: 'Ramche';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/Ramche.woff2')
-    format('woff2');
+  font-family: "Ramche";
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/Ramche.woff2")
+    format("woff2");
   font-weight: normal;
   font-style: normal;
 }
@@ -10,7 +10,7 @@
   margin: 0;
   padding: 0;
   font-size: 25px;
-  font-family: 'Ramche';
+  font-family: "Ramche";
 }
 img {
   border: 0;
@@ -74,7 +74,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -88,7 +88,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -102,7 +102,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -139,25 +139,25 @@ body {
 }
 
 #story-backward {
-  left: 180px;
+  left: 150px;
   bottom: 60px;
 
-  background-image: url('assets/backward.png');
+  background-image: url("assets/backward.png");
   background-size: 120%;
   border-radius: 15px;
 }
 
 #story-forward {
-  right: 180px;
-  background-image: url('assets/foward.png');
+  right: 150px;
+  background-image: url("assets/foward.png");
   background-size: 120%;
   border-radius: 15px;
   bottom: 60px;
 }
 
 #story-skip {
-  right: 180px;
-  background-image: url('assets/skipImg.png');
+  right: 150px;
+  background-image: url("assets/skipImg.png");
   background-size: 140%;
   border-radius: 15px;
   bottom: 130px;
@@ -180,7 +180,7 @@ body {
   left: 120px;
   width: 60px;
   height: 60px;
-  background-image: url('assets/back.png');
+  background-image: url("assets/back.png");
   background-size: 120%;
   background-repeat: no-repeat;
   background-position: center;
@@ -197,7 +197,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -212,7 +212,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -228,7 +228,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -248,7 +248,7 @@ body {
   height: 50px;
   border: 0;
   border-radius: 15px;
-  background-image: url('assets/back.png');
+  background-image: url("assets/back.png");
   background-size: 130%;
   background-position: center;
   background-repeat: no-repeat;
@@ -261,7 +261,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -286,7 +286,7 @@ body {
   transform: translateY(-40%);
   width: 40px;
   height: 40px;
-  background-image: url('assets/soundon.png');
+  background-image: url("assets/soundon.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -302,7 +302,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -316,7 +316,7 @@ body {
   height: 30px;
   left: 35%;
   transform: translateX(-50%);
-  background-image: url('assets/arrow1.png');
+  background-image: url("assets/arrow1.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -329,7 +329,7 @@ body {
   height: 30px;
   left: 65%;
   transform: translateX(-50%);
-  background-image: url('assets/arrow2.png');
+  background-image: url("assets/arrow2.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -358,7 +358,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -372,7 +372,7 @@ body {
   left: 43%;
   transform: translateX(-50%);
   background-color: rgba(255, 255, 255, 0.9);
-  background-image: url('assets/homeUniform.png');
+  background-image: url("assets/homeUniform.png");
   background-repeat: no-repeat;
   background-size: 50%;
   background-position: center;
@@ -388,7 +388,7 @@ body {
   left: 57%;
   transform: translateX(-50%);
   background-color: rgba(255, 255, 255, 0.5);
-  background-image: url('assets/awayUniform.png');
+  background-image: url("assets/awayUniform.png");
   background-repeat: no-repeat;
   background-size: 50%;
   background-position: center;
@@ -420,7 +420,7 @@ body {
   right: 110px;
   width: 50px;
   height: 50px;
-  background-image: url('assets/Pause.png');
+  background-image: url("assets/Pause.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -434,7 +434,7 @@ body {
   right: 230px;
   width: 50px;
   height: 50px;
-  background-image: url('assets/SongOn.png');
+  background-image: url("assets/SongOn.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -457,7 +457,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -471,7 +471,7 @@ body {
   height: 50px;
   left: 50%;
   transform: translateX(-50%);
-  background-image: url('assets/menubutton.png');
+  background-image: url("assets/menubutton.png");
   background-repeat: no-repeat;
   background-size: 120%;
   background-position: center;
@@ -484,7 +484,7 @@ body {
   position: absolute;
   width: 25px;
   height: 25px;
-  background-image: url('assets/ball.svg');
+  background-image: url("assets/ball.svg");
   background-size: cover;
   top: 550px;
   left: 390px;
@@ -495,7 +495,7 @@ body {
   position: absolute;
   width: 50px;
   height: 30px;
-  background-image: url('assets/brick.svg');
+  background-image: url("assets/brick.svg");
   background-size: cover;
 }
 
@@ -503,7 +503,7 @@ body {
   position: absolute;
   width: 50px;
   height: 30px;
-  background-image: url('assets/defender.svg');
+  background-image: url("assets/defender.svg");
   background-size: cover;
 }
 
@@ -511,7 +511,7 @@ body {
   position: absolute;
   width: 50px;
   height: 30px;
-  background-image: url('assets/referee.svg');
+  background-image: url("assets/referee.svg");
   background-size: cover;
 }
 
@@ -519,7 +519,7 @@ body {
   position: absolute;
   width: 50px;
   height: 30px;
-  background-image: url('assets/goalkeeper.svg');
+  background-image: url("assets/goalkeeper.svg");
   background-size: cover;
 }
 
@@ -566,7 +566,7 @@ body {
   right: 170px;
   width: 50px;
   height: 50px;
-  background-image: url('assets/reset.svg');
+  background-image: url("assets/reset.svg");
   background-repeat: no-repeat;
   background-size: 110%;
   background-position: center;
@@ -579,7 +579,7 @@ body {
   position: absolute;
   width: 50px;
   height: 30px;
-  background-image: url('assets/homeUniform.png');
+  background-image: url("assets/homeUniform.png");
   background-size: cover;
   top: 650px;
   left: 470px;
@@ -601,7 +601,7 @@ body {
   position: absolute;
   width: 120px;
   height: 50px;
-  background-image: url('assets/goalpost.svg');
+  background-image: url("assets/goalpost.svg");
   background-size: cover;
   z-index: 20;
   top: 130px;
@@ -633,7 +633,7 @@ body {
 #ingame-ui-special {
   position: absolute;
   color: white;
-  font-family: 'Galmuri', sans-serif;
+  font-family: "Galmuri", sans-serif;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -680,19 +680,19 @@ body {
 #ingame-bgm-button {
   top: 30px;
   right: 230px;
-  background-image: url('assets/SongOn.png');
+  background-image: url("assets/SongOn.png");
 }
 
 #ingame-reset-button {
   top: 30px;
   right: 170px;
-  background-image: url('assets/reset.svg');
+  background-image: url("assets/reset.svg");
 }
 
 #ingame-pause-button {
   top: 30px;
   right: 110px;
-  background-image: url('assets/Pause.png');
+  background-image: url("assets/Pause.png");
 }
 
 @keyframes powerShotGlow {
@@ -731,7 +731,7 @@ body {
   background: rgba(0, 0, 0, 0.7);
   align-items: center;
   justify-content: center;
-  font-family: 'Ramche';
+  font-family: "Ramche";
   display: flex;
   padding: 40px;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
